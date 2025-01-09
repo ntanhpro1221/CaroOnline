@@ -26,8 +26,12 @@ public class SelectableBoard : SceneSingleton<SelectableBoard> {
             _Map.SetColor(_CurCell.Value, _NormalColor);
             _CurCell = null;
         }
+        
+        if (!Application.isFocused) return;
 
         if (LeftMouse != null) {
+            if (float.IsNaN(MousePos.x) || float.IsNaN(MousePos.y)) return;
+
             _CurCell = ScreenToCell(MousePos);
 
             if (LeftMouse.wasPressedThisFrame)
@@ -43,9 +47,9 @@ public class SelectableBoard : SceneSingleton<SelectableBoard> {
                 if (Vector3.Distance(_PressStartPoint, MousePos) <= float.Epsilon)
                     OnCellSelected.Invoke(_CurCell.Value);
             }
-        }
-        
-        if (Touch != null) {
+        } else if (Touch != null) {
+            if (float.IsNaN(TouchPos.x) || float.IsNaN(TouchPos.y)) return;
+
             _CurCell = ScreenToCell(TouchPos);
 
             if (Touch.phase.value == UnityEngine.InputSystem.TouchPhase.Began)
@@ -55,6 +59,7 @@ public class SelectableBoard : SceneSingleton<SelectableBoard> {
 
             if (Touch.phase.value == UnityEngine.InputSystem.TouchPhase.Ended) {
                 _Map.SetColor(_CurCell.Value, _NormalColor);
+
                 if (Vector3.Distance(_PressStartPoint, MousePos) <= float.Epsilon)
                     OnCellSelected.Invoke(_CurCell.Value);
             }
