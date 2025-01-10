@@ -17,6 +17,7 @@ public class LobbyHelper : Singleton<LobbyHelper> {
 
     private const string KEY_RELAY_CODE = "Relay Code";
 
+    public BindableProperty<RoomToolUI.Status> RoomToolStatus { get; } = new();
     public RealtimeLobby JoinedLobby { get; private set; }
     public RelayHelper RelayHelper { get; private set; }
 
@@ -44,6 +45,8 @@ public class LobbyHelper : Singleton<LobbyHelper> {
         RelayHelper = new();
         JoinedLobby = new(LobbyService.Instance);
 
+        RoomToolStatus.Value = RoomToolUI.Status.None;
+
         isInitialized = true;
     }
     
@@ -65,6 +68,8 @@ public class LobbyHelper : Singleton<LobbyHelper> {
     [Command]
     public async Task CreateLobby(string lobbyName, int maxPlayers, bool isPrivate = false) {
         try {
+            RoomToolStatus.Value = RoomToolUI.Status.Creating;
+
             string relayCode = await RelayHelper.CreateRelay();
 
             CreateLobbyOptions options = new() {
@@ -79,6 +84,8 @@ public class LobbyHelper : Singleton<LobbyHelper> {
             Debug.Log($"Created lobby {lobbyName} with code = {lobby.LobbyCode}");
 
             JoinedLobby.StartSync(lobby, true);
+
+            RoomToolStatus.Value = RoomToolUI.Status.Waiting;
 
             _WaitForOpponentTask = new(WaitForOpponent);
         } catch (LobbyServiceException e) {
@@ -153,6 +160,8 @@ public class LobbyHelper : Singleton<LobbyHelper> {
             
             _WaitForOpponentTask?.Cancel();
             _WaitForOpponentTask = null;
+
+            RoomToolStatus.Value = RoomToolUI.Status.None;
         } catch (LobbyServiceException e) {
             Debug.LogError(e.Message);
         }

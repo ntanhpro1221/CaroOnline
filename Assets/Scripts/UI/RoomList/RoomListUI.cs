@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Unity.Services.Authentication;
 using Unity.Services.Lobbies.Models;
 using UnityEngine;
 using UnityEngine.UI;
@@ -27,6 +28,8 @@ public class RoomListUI : SceneSingleton<RoomListUI> {
         List<Lobby> listRoom = await taskQuery;
         List<Lobby> addRoom = new();
         List<string> removeRoom = new();
+
+        listRoom.RemoveAll(lobby => lobby.HostId == AuthenticationService.Instance.PlayerId);
 
         foreach (Lobby room in listRoom)
             if (_ElementDict.ContainsKey(room.Id))
