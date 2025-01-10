@@ -3,7 +3,8 @@ using UnityEngine;
 
 public class PlayerController : NetworkBehaviour {
     public void ClientClicked(Vector3Int pos) {
-        MarkHelper.Instance.Mark_O(pos);
+        if (!MarkHelper.Instance.Mark_O(pos)) return;
+
         Mark_O_ServerRpc(pos);
 
         if (MarkHelper.Instance.IsThisMoveMakeWin(pos)) {
@@ -12,8 +13,9 @@ public class PlayerController : NetworkBehaviour {
     }
 
     public void HostClicked(Vector3Int pos) {
-        MarkHelper.Instance.Mark_X(pos); // for fast
-        Mark_X_ClientRpc(pos); // mark to this pos again but no problem
+        if (!MarkHelper.Instance.Mark_X(pos)) return;
+
+        Mark_X_ClientRpc(pos, true);
 
         if (MarkHelper.Instance.IsThisMoveMakeWin(pos)) {
             NotifyHostIsWinner_ClientRpc();
@@ -30,7 +32,7 @@ public class PlayerController : NetworkBehaviour {
     public void NotifyHostIsWinner_ClientRpc() {
         BattleConnector.Instance.HandleResult(IsHost); 
     }
-    
+
     [ClientRpc]
     public void NotifyClientIsWinner_ClientRpc() {
         BattleConnector.Instance.HandleResult(!IsHost); 
@@ -41,22 +43,22 @@ public class PlayerController : NetworkBehaviour {
         => NotifyClientIsWinner_ClientRpc();
 
     [ClientRpc]
-    public void Mark_X_ClientRpc(Vector3Int pos) {
-        MarkHelper.Instance.Mark_X(pos); 
+    public void Mark_X_ClientRpc(Vector3Int pos, bool excludeHost = false) { 
+        if (excludeHost && IsHost) return;
+        MarkHelper.Instance.Mark_X(pos);
     }
 
     [ClientRpc]
-    public void Mark_O_ClientRpc(Vector3Int pos) {
+    public void Mark_O_ClientRpc(Vector3Int pos, bool excludeHost = false) { 
+        if (excludeHost && IsHost) return;
         MarkHelper.Instance.Mark_O(pos);
     }
 
     [ServerRpc]
-    public void Mark_X_ServerRpc(Vector3Int pos) {
-        MarkHelper.Instance.Mark_X(pos); 
-    }
+    public void Mark_X_ServerRpc(Vector3Int pos)
+        => MarkHelper.Instance.Mark_X(pos); 
 
     [ServerRpc]
-    public void Mark_O_ServerRpc(Vector3Int pos) {
-        MarkHelper.Instance.Mark_O(pos);
-    }
+    public void Mark_O_ServerRpc(Vector3Int pos)
+        => MarkHelper.Instance.Mark_O(pos);
 }

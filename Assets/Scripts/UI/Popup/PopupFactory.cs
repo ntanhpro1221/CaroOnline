@@ -7,6 +7,7 @@ public class PopupFactory : Singleton<PopupFactory> {
         => _CanvasTrans ??= GameObject.Find("Canvas").transform;
 
     [SerializeField] private GameObject _PopupObj;
+    [SerializeField] private GameObject _SimplePopupObj;
 
     public void ShowPopup(
         string title,
@@ -16,9 +17,8 @@ public class PopupFactory : Singleton<PopupFactory> {
         bool closeAfterNegative,
         string possitiveTxt,
         UnityAction possitiveCallback,
-        bool closeAfterPossitive) {
-        print("hihi cai lon ma");
-        Instantiate(_PopupObj, CanvasTrans).GetComponent<PopupUI>().Init(
+        bool closeAfterPossitive) 
+        => Instantiate(_PopupObj, CanvasTrans).GetComponent<PopupUI>().Init(
             title,
             content,
             negativeTxt,
@@ -27,5 +27,9 @@ public class PopupFactory : Singleton<PopupFactory> {
             possitiveTxt,
             possitiveCallback,
             closeAfterPossitive);
-    }
+
+    public void ShowSimplePopup(string content, float duration = 2)
+        => Instantiate(_SimplePopupObj, CanvasTrans).GetComponent<SimplePopupUI>().Init(
+            content,
+            duration);
 }

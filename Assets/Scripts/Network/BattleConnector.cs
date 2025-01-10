@@ -7,7 +7,6 @@ public class BattleConnector : SceneSingleton<BattleConnector> {
     public bool IsStarted { get; private set; } = false;
 
     private void Start() {
-        print("start BattleConnector");
         NetworkManager net = NetworkManager.Singleton;
         net.OnClientConnectedCallback += OnClientConnectedCallback;
         if (AuthenticationService.Instance.PlayerId == LobbyHelper.Instance.JoinedLobby.Value.HostId) {
@@ -19,7 +18,6 @@ public class BattleConnector : SceneSingleton<BattleConnector> {
 
     private async void OnClientConnectedCallback(ulong id) {
         NetworkManager net = NetworkManager.Singleton;
-        print($"Connect có {net.ConnectedClients.Count} người nè");
         if (net.ConnectedClients.Count == 2) {
             IsStarted = true;
             if (net.IsHost) {

@@ -12,6 +12,7 @@ public class SelectableBoard : SceneSingleton<SelectableBoard> {
     [SerializeField] private Color _PressedColor;
     private Tilemap _Map;
     private Camera _Cam;
+    private readonly TouchHelper _Touches = new();
     private Vector3Int? _CurCell;
     private Vector3 _PressStartPoint;
 
@@ -30,8 +31,6 @@ public class SelectableBoard : SceneSingleton<SelectableBoard> {
         if (!Application.isFocused) return;
 
         if (LeftMouse != null) {
-            if (float.IsNaN(MousePos.x) || float.IsNaN(MousePos.y)) return;
-
             _CurCell = ScreenToCell(MousePos);
 
             if (LeftMouse.wasPressedThisFrame)
@@ -44,24 +43,26 @@ public class SelectableBoard : SceneSingleton<SelectableBoard> {
             if (LeftMouse.wasReleasedThisFrame) {
                 _Map.SetColor(_CurCell.Value, _HighlightedColor);
 
-                if (Vector3.Distance(_PressStartPoint, MousePos) <= float.Epsilon)
+                if (Vector3.Distance(_PressStartPoint, MousePos) <= TouchHelper.TOUCH_DISTANCE)
                     OnCellSelected.Invoke(_CurCell.Value);
             }
-        } else if (Touch != null) {
-            if (float.IsNaN(TouchPos.x) || float.IsNaN(TouchPos.y)) return;
+        } else if (Touchscreen.current != null) {
+            _Touches.UpdateToNewestState();
 
-            _CurCell = ScreenToCell(TouchPos);
+            _CurCell = ScreenToCell(_Touches[0].Position);
 
-            if (Touch.phase.value == UnityEngine.InputSystem.TouchPhase.Began)
-                _PressStartPoint = _CurCell.Value;
+            if (_Touches[0].Phase == TouchHelper.PHASE_BEGAN)
+                _PressStartPoint = _Touches[0].Position;
+            
+            if (_Touches[0].Phase is TouchHelper.PHASE_MOVED or TouchHelper.PHASE_STATIONARY)
+                _Map.SetColor(_CurCell.Value, _PressedColor);
 
-            _Map.SetColor(_CurCell.Value, _PressedColor);
-
-            if (Touch.phase.value == UnityEngine.InputSystem.TouchPhase.Ended) {
+            if (_Touches[0].Phase == TouchHelper.PHASE_ENDED) {
                 _Map.SetColor(_CurCell.Value, _NormalColor);
 
-                if (Vector3.Distance(_PressStartPoint, MousePos) <= float.Epsilon)
+                if (Vector3.Distance(_PressStartPoint, _Touches[0].Position) <= TouchHelper.TOUCH_DISTANCE) {
                     OnCellSelected.Invoke(_CurCell.Value);
+                }
             }
         }
     }
@@ -72,12 +73,6 @@ public class SelectableBoard : SceneSingleton<SelectableBoard> {
     private UnityEngine.InputSystem.Controls.ButtonControl LeftMouse
         => Mouse.current?.leftButton;
     
-    private Vector2 TouchPos
-        => Touch.position.value;
-
-    private UnityEngine.InputSystem.Controls.TouchControl Touch
-        => Touchscreen.current?.touches[0];
-
     private Vector3Int ScreenToCell(Vector3 position)
         => _Map.WorldToCell(_Cam.ScreenToWorldPoint(position));
 }

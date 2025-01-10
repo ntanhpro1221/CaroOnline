@@ -1,9 +1,12 @@
 ﻿using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
 [RequireComponent(typeof(Tilemap))]
 public class MarkHelper : SceneSingleton<MarkHelper> {
+    public bool IsXTurn { get; private set; } = true;
+
     [SerializeField] private TileBase _Mark_O;
     [SerializeField] private TileBase _Mark_X;
 
@@ -14,11 +17,47 @@ public class MarkHelper : SceneSingleton<MarkHelper> {
         _Map = GetComponent<Tilemap>();
     }
 
-    public void Mark_O(Vector3Int pos) 
-        => _Map.SetTile(pos, _Mark_O);
-    
-    public void Mark_X(Vector3Int pos) 
-        => _Map.SetTile(pos, _Mark_X);
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="pos"></param>
+    /// <returns>Is this move valid</returns>
+    public bool Mark_O(Vector3Int pos) {
+        // Check empty
+        if (_Map.HasTile(pos)) return false;
+
+        // Check true turn
+        if (IsXTurn) {
+            Handheld.Vibrate();
+            PopupFactory.Instance.ShowSimplePopup("Not your turn!");
+            return false;
+        }
+        
+        _Map.SetTile(pos, _Mark_O);
+        IsXTurn = !IsXTurn;
+        return true;
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="pos"></param>
+    /// <returns>Is this move valid</returns>
+    public bool Mark_X(Vector3Int pos) {
+        // Check empty
+        if (_Map.HasTile(pos)) return false;
+
+        // Check true turn
+        if (!IsXTurn) {
+            Handheld.Vibrate();
+            PopupFactory.Instance.ShowSimplePopup("Not your turn!");
+            return false;
+        }
+
+        _Map.SetTile(pos, _Mark_X);
+        IsXTurn = !IsXTurn;
+        return true;
+    }
 
     public void Unmark(Vector3Int pos) 
         => _Map.SetTile(pos, null);

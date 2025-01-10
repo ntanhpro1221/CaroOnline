@@ -45,3 +45,4 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _PopupObj: {fileID: 2818579464580100436, guid: 059962a69d6cef640bb71e5b0799fe3b, type: 3}
+  _SimplePopupObj: {fileID: 6561843313045738426, guid: 37654ba0ba90fc34584c5a0cda3fa44e, type: 3}
