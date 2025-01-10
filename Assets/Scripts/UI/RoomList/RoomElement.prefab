@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 2068847185852164859}
   - component: {fileID: 1362207983175167855}
   - component: {fileID: 3453567002354036944}
-  - component: {fileID: 2439844663744799368}
+  - component: {fileID: 1021311732557040832}
   m_Layer: 5
   m_Name: JoinBtn
   m_TagString: Untagged
@@ -77,7 +77,7 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1.5
---- !u!114 &2439844663744799368
+--- !u!114 &1021311732557040832
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -86,7 +86,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 1566158415702366218}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+  m_Script: {fileID: 11500000, guid: 93c4ec95387b1bf4485f51edf57cd026, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   m_Navigation:
@@ -489,7 +489,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _RoomNameTxt: {fileID: 6738049794386043315}
-  _JoinBtn: {fileID: 2439844663744799368}
+  _JoinBtn: {fileID: 1021311732557040832}
 --- !u!1 &9092219210096592986
 GameObject:
   m_ObjectHideFlags: 0

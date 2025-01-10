@@ -38,6 +38,5 @@ public class RealtimeLobby {
         _Task_DoHeartbeat = null;
         _Task_SyncData?.Cancel(); 
         _Task_SyncData = null;
-        Value = null;
     }
 }
