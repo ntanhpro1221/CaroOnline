@@ -1,5 +1,6 @@
 using Unity.Services.Authentication;
 using UnityEngine;
+using WebSocketSharp;
 
 public class RoomToolUI : SceneSingleton<RoomToolUI> {
     [SerializeField] private GameObject _StatusLine_Creating;
@@ -26,7 +27,9 @@ public class RoomToolUI : SceneSingleton<RoomToolUI> {
             "Harry pótt?",
         };
         await LobbyHelper.Instance.CreateLobby(
-            nameList[Random.Range(0, nameList.Length - 1)]
+            AuthenticationService.Instance.PlayerName.IsNullOrEmpty() ?
+                nameList[Random.Range(0, nameList.Length - 1)] :
+                AuthenticationService.Instance.PlayerName
             , 1); 
     }
 

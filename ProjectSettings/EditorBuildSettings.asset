@@ -17,6 +17,9 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/BattleScene.unity
     guid: df9982a4776246240b77e4aa92c92bd9
+  - enabled: 1
+    path: Assets/Scenes/SignInScene.unity
+    guid: 32c8bf4b5f9c7a04a9e098bb7ab93c1c
   m_configObjects:
     com.unity.adaptiveperformance.simulator.provider_settings: {fileID: 11400000, guid: 9d6cd836c082ef847a91eb48adfc3a35, type: 2}
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 2bcd2660ca9b64942af0de543d8d7100, type: 3}

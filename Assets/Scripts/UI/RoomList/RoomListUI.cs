@@ -45,8 +45,6 @@ public class RoomListUI : SceneSingleton<RoomListUI> {
     }
 
     private async Task StartSyncRoomList(CancellationToken token) {
-        await LobbyHelper.Instance.WaitForInit();
-
         while (!token.IsCancellationRequested) await Task.WhenAll(
             RefreshList(),
             Task.Delay(LobbyHelper.RATE_QUERY));

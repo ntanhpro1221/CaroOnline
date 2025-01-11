@@ -21,40 +21,19 @@ public class LobbyHelper : Singleton<LobbyHelper> {
     public RealtimeLobby JoinedLobby { get; private set; }
     public RelayHelper RelayHelper { get; private set; }
 
-    private bool isInitialized = false;
     private ILobbyService _LobbyService;
     private ILobbyServiceSDK _LobbySDK;
     private CancellableTask _WaitForOpponentTask;
 
-    protected override async void Awake() {
-        base.Awake();
-
-        await UnityServices.InitializeAsync();
-
-        try {
-            AuthenticationService.Instance.SignedIn += () => {
-                print("Signed in: " + AuthenticationService.Instance.PlayerId);
-            };
-            await AuthenticationService.Instance.SignInAnonymouslyAsync();
-        } catch (AuthenticationException e) {
-            Debug.LogError(e.Message);
-        }
-
+    public void Init() {
         _LobbyService = LobbyService.Instance;
         _LobbySDK = Lobbies.Instance;
         RelayHelper = new();
         JoinedLobby = new(LobbyService.Instance);
 
         RoomToolStatus.Value = RoomToolUI.Status.None;
+    }
 
-        isInitialized = true;
-    }
-    
-    public async Task WaitForInit() {
-        while (!isInitialized)
-            await Task.Delay(200);
-    }
-    
     private async Task WaitForOpponent(CancellationToken tokken) {
         while (!tokken.IsCancellationRequested) {
             if (JoinedLobby.Value.Players.Count == 2) {
