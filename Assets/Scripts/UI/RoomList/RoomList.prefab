@@ -162,7 +162,7 @@ GameObject:
   m_Component:
   - component: {fileID: 7276736220995812833}
   - component: {fileID: 2016866672358926006}
-  - component: {fileID: 8680376491078241783}
+  - component: {fileID: 6958558168714665481}
   m_Layer: 5
   m_Name: RoomList
   m_TagString: Untagged
@@ -221,7 +221,7 @@ MonoBehaviour:
   m_OnValueChanged:
     m_PersistentCalls:
       m_Calls: []
---- !u!114 &8680376491078241783
+--- !u!114 &6958558168714665481
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -230,10 +230,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 5186624079110308068}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0f782c45db9ca56498e1c1ab232d3fb2, type: 3}
+  m_Script: {fileID: 11500000, guid: 944000e607793ba44a64d701a1684a6a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _ElementObj: {fileID: 8197104864585041433, guid: 7521b001ca8ba784bb35c72292e1f3a1, type: 3}
+  _ElementObj: {fileID: 8197104864585041433, guid: 2967ecd7ac03aca45b71325f96fc621a, type: 3}
 --- !u!1 &7106362591217727315
 GameObject:
   m_ObjectHideFlags: 0

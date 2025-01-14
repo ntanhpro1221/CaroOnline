@@ -11,7 +11,8 @@ GameObject:
   - component: {fileID: 2068847185852164859}
   - component: {fileID: 1362207983175167855}
   - component: {fileID: 3453567002354036944}
-  - component: {fileID: 1021311732557040832}
+  - component: {fileID: 1545301487393843260}
+  - component: {fileID: 5326044915484969468}
   m_Layer: 5
   m_Name: JoinBtn
   m_TagString: Untagged
@@ -67,7 +68,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 4a7640731691ec640b4d700df950085a, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 7378d6d8aae18e6498376c7e874ffe84, type: 3}
   m_Type: 1
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -76,8 +77,8 @@ MonoBehaviour:
   m_FillClockwise: 1
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
-  m_PixelsPerUnitMultiplier: 1.5
---- !u!114 &1021311732557040832
+  m_PixelsPerUnitMultiplier: 0.25
+--- !u!114 &1545301487393843260
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -86,7 +87,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 1566158415702366218}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 93c4ec95387b1bf4485f51edf57cd026, type: 3}
+  m_Script: {fileID: 11500000, guid: 1266622cc2e103b4d9dcd3e0eb5ba372, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   m_Navigation:
@@ -121,6 +122,21 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &5326044915484969468
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1566158415702366218}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cfabb0440166ab443bba8876756fdfa9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_EffectColor: {r: 0, g: 0, b: 0, a: 0.5}
+  m_EffectDistance: {x: 0, y: -5}
+  m_UseGraphicAlpha: 1
 --- !u!1 &3898499344309390922
 GameObject:
   m_ObjectHideFlags: 0
@@ -383,8 +399,8 @@ GameObject:
   - component: {fileID: 6991745946132856531}
   - component: {fileID: 3049749425220739420}
   - component: {fileID: 8412485736038530902}
-  - component: {fileID: 1974199646614189871}
   - component: {fileID: 7051979272980024543}
+  - component: {fileID: 3779078303143898469}
   m_Layer: 5
   m_Name: RoomElement
   m_TagString: Untagged
@@ -441,7 +457,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: b765d10f7f039904ebfb9e4db1f949b0, type: 3}
+  m_Sprite: {fileID: 21300000, guid: c1f4602276cf15b498a511d917c87d7a, type: 3}
   m_Type: 1
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -450,7 +466,7 @@ MonoBehaviour:
   m_FillClockwise: 1
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
-  m_PixelsPerUnitMultiplier: 0.4
+  m_PixelsPerUnitMultiplier: 20
 --- !u!114 &8412485736038530902
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -477,20 +493,6 @@ MonoBehaviour:
   m_ChildScaleWidth: 0
   m_ChildScaleHeight: 0
   m_ReverseArrangement: 0
---- !u!114 &1974199646614189871
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8197104864585041433}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5548fcd2783123a41a0b870cc8447542, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _RoomNameTxt: {fileID: 6738049794386043315}
-  _JoinBtn: {fileID: 1021311732557040832}
 --- !u!114 &7051979272980024543
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -506,6 +508,20 @@ MonoBehaviour:
   m_EffectColor: {r: 0, g: 0, b: 0, a: 0.5019608}
   m_EffectDistance: {x: -10, y: -10}
   m_UseGraphicAlpha: 0
+--- !u!114 &3779078303143898469
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8197104864585041433}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9493c88e438735240b8c8fd9e1d5dcdb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _RoomNameTxt: {fileID: 6738049794386043315}
+  _JoinBtn: {fileID: 1545301487393843260}
 --- !u!1 &9092219210096592986
 GameObject:
   m_ObjectHideFlags: 0

@@ -176,8 +176,8 @@ GameObject:
   - component: {fileID: 499949695}
   - component: {fileID: 499949697}
   - component: {fileID: 499949696}
+  - component: {fileID: 499949699}
   - component: {fileID: 499949698}
-  - component: {fileID: 499949700}
   m_Layer: 0
   m_Name: Background
   m_TagString: Untagged
@@ -241,7 +241,7 @@ TilemapRenderer:
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
-  m_SortingLayerID: 1805784501
+  m_SortingLayerID: 1049595509
   m_SortingLayer: -1
   m_SortingOrder: 0
   m_ChunkSize: {x: 32, y: 32, z: 32}
@@ -299,11 +299,13 @@ MonoBehaviour:
   m_GameObject: {fileID: 499949694}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0f07176681cb67e4788f77e02437062f, type: 3}
+  m_Script: {fileID: 11500000, guid: cd6e5ae011c0def4a9978959687eae59, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _Cell: {fileID: 11400000, guid: 1a0103f3aeccc524ab80a23bc2790942, type: 2}
---- !u!114 &499949700
+  _NormalColor: {r: 1, g: 1, b: 1, a: 1}
+  _HighlightedColor: {r: 0.5019608, g: 0.5019608, b: 0.5019608, a: 1}
+  _PressedColor: {r: 0.2509804, g: 0.2509804, b: 0.2509804, a: 1}
+--- !u!114 &499949699
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -312,12 +314,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 499949694}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7a0f70a0347001746aaaa05ac7c2b2d0, type: 3}
+  m_Script: {fileID: 11500000, guid: 75b719ab1f8e2a44bb8cc6fd58275079, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _NormalColor: {r: 1, g: 1, b: 1, a: 1}
-  _HighlightedColor: {r: 0.65882355, g: 0.65882355, b: 0.65882355, a: 1}
-  _PressedColor: {r: 0.5019608, g: 0.5019608, b: 0.5019608, a: 1}
+  _Cell: {fileID: 11400000, guid: d8e355fda50213b408852d8440c59a2a, type: 2}
 --- !u!1 &595275093
 GameObject:
   m_ObjectHideFlags: 0
@@ -476,7 +476,7 @@ Canvas:
   m_VertexColorAlwaysGammaSpace: 0
   m_AdditionalShaderChannelsFlag: 25
   m_UpdateRectTransformForStandalone: 0
-  m_SortingLayerID: 1773499595
+  m_SortingLayerID: -8892735
   m_SortingOrder: 0
   m_TargetDisplay: 0
 --- !u!224 &702311664
@@ -507,7 +507,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1259700965}
-  - component: {fileID: 1259700964}
+  - component: {fileID: 1259700966}
   m_Layer: 0
   m_Name: BattleConnector (SceneSIngleton)
   m_TagString: Untagged
@@ -515,18 +515,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1259700964
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1259700963}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5d44ccd4d296add4d80c834536b36709, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!4 &1259700965
 Transform:
   m_ObjectHideFlags: 0
@@ -542,6 +530,18 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1259700966
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1259700963}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8764438c644d07d4a8f10c75545d1cad, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1730619466
 GameObject:
   m_ObjectHideFlags: 0
@@ -675,11 +675,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 1730619466}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b27d3cb67a3ce1e4fa76039e4e2f3337, type: 3}
+  m_Script: {fileID: 11500000, guid: 3e8282599aa93f046a6cd6e7489e40ec, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _Mark_O: {fileID: 11400000, guid: 0b67b5090593d55468ab6a96f0ae85a8, type: 2}
-  _Mark_X: {fileID: 11400000, guid: 9a54f390c0fded8419c5d1e3eac404f3, type: 2}
+  _Mark_O: {fileID: 11400000, guid: feb394fbb34fa464ba5e2351dcbf2cd7, type: 2}
+  _Mark_X: {fileID: 11400000, guid: 30286bc1171b8e44f9774315fe6fb45b, type: 2}
 --- !u!1 &1953401895
 GameObject:
   m_ObjectHideFlags: 0
@@ -827,7 +827,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 1953401895}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 011e023e6d1aeb0448c799288b84c86e, type: 3}
+  m_Script: {fileID: 11500000, guid: 7b48c9de78e283f4288faa7989c08f7f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   _ZoomSpeed: 1.1

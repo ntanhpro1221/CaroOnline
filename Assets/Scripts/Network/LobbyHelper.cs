@@ -1,7 +1,6 @@
 ﻿using Unity.Services.Lobbies;
 using Unity.Services.Lobbies.Models;
 using UnityEngine;
-using QFSW.QC;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using Unity.Services.Core;
@@ -44,7 +43,7 @@ public class LobbyHelper : Singleton<LobbyHelper> {
         }
     }
 
-    [Command]
+    
     public async Task CreateLobby(string lobbyName, int maxPlayers, bool isPrivate = false) {
         try {
             RoomToolStatus.Value = RoomToolUI.Status.Creating;
@@ -72,7 +71,7 @@ public class LobbyHelper : Singleton<LobbyHelper> {
         }
     }
 
-    [Command]
+    
     public async Task<List<Lobby>> QueryLobbies() {
         List<Lobby> listLobby = null;
 
@@ -89,7 +88,7 @@ public class LobbyHelper : Singleton<LobbyHelper> {
         return listLobby;
     }
 
-    [Command]
+    
     public async Task JoinLobbyByCode(string lobbyCode) {
         try {
             Lobby lobby = await _LobbyService.JoinLobbyByCodeAsync(lobbyCode);
@@ -104,7 +103,7 @@ public class LobbyHelper : Singleton<LobbyHelper> {
         }
     }
 
-    [Command]
+    
     public async Task JoinLobbyById(string lobbyId) {
         try {
             Lobby lobby = await _LobbyService.JoinLobbyByIdAsync(lobbyId);
@@ -151,7 +150,7 @@ public class LobbyHelper : Singleton<LobbyHelper> {
         ToBattleScene();
     }
 
-    [Command]
+    
     public async Task JoinGame(string relayCode) {
         JoinedLobby.StopSync();
         await RelayHelper.JoinRelay(relayCode);

@@ -9,7 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 9105506040394865673}
-  - component: {fileID: 1144860659435617846}
+  - component: {fileID: 6312838231705301475}
   m_Layer: 0
   m_Name: PopupFactory (Singleton)
   m_TagString: Untagged
@@ -32,7 +32,7 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1144860659435617846
+--- !u!114 &6312838231705301475
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -41,8 +41,8 @@ MonoBehaviour:
   m_GameObject: {fileID: 4921533535121131441}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9ac099d6c5d468743be22b794a5cda3c, type: 3}
+  m_Script: {fileID: 11500000, guid: 89519765146badb4ba80de47460d6c5f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _PopupObj: {fileID: 2818579464580100436, guid: 059962a69d6cef640bb71e5b0799fe3b, type: 3}
-  _SimplePopupObj: {fileID: 6561843313045738426, guid: 37654ba0ba90fc34584c5a0cda3fa44e, type: 3}
+  _PopupObj: {fileID: 2818579464580100436, guid: 870d688bcc52e5d4a8d727438fecbced, type: 3}
+  _SimplePopupObj: {fileID: 6561843313045738426, guid: b93b1bd33918cfd43af7b19b066f3e27, type: 3}

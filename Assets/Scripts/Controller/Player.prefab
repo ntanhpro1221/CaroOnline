@@ -10,7 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 634438080969906818}
   - component: {fileID: 5370044275633258576}
-  - component: {fileID: 4872818649302411857}
+  - component: {fileID: 1465972439805480347}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -45,7 +45,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  GlobalObjectIdHash: 296041178
+  GlobalObjectIdHash: 2455040252
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 1
@@ -58,7 +58,7 @@ MonoBehaviour:
   AutoObjectParentSync: 1
   SyncOwnerTransformWhenParented: 0
   AllowOwnerToParent: 0
---- !u!114 &4872818649302411857
+--- !u!114 &1465972439805480347
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -67,7 +67,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 1338419907341960998}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ff8affdfe9574c64da4ad3b127f3fe83, type: 3}
+  m_Script: {fileID: 11500000, guid: ae384e3323df3c247b65f0aee59eafef, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   ShowTopMostFoldoutHeaderGroup: 1

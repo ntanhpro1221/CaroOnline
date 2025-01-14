@@ -1,5 +1,6 @@
 using Unity.Services.Authentication;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using WebSocketSharp;
 
 public class RoomToolUI : SceneSingleton<RoomToolUI> {
@@ -7,6 +8,7 @@ public class RoomToolUI : SceneSingleton<RoomToolUI> {
     [SerializeField] private GameObject _StatusLine_Waiting;
     [SerializeField] private ClickyButton _Button_Create;
     [SerializeField] private ClickyButton _Button_Discard;
+    [SerializeField] private ClickyButton _Button_SignOut;
 
     private Status _CurStatus;
     public Status CurStatus {
@@ -21,22 +23,20 @@ public class RoomToolUI : SceneSingleton<RoomToolUI> {
     }
     
     private async void OnClickCreate() {
-        string[] nameList = new string[] {
-            "Alice",
-            "Join",
-            "Harry pótt?",
-        };
         await LobbyHelper.Instance.CreateLobby(
-            AuthenticationService.Instance.PlayerName.IsNullOrEmpty() ?
-                nameList[Random.Range(0, nameList.Length - 1)] :
-                AuthenticationService.Instance.PlayerName
-            , 1); 
+            AuthenticationService.Instance.PlayerName.Replace('_', ' '), 
+            2); 
     }
 
     private async void OnClickDiscard() {
         await LobbyHelper.Instance.DeleteHostedLobby();
     }
     
+    private async void OnClickSignOut() {
+        AuthHelper.Instance.SignOut();
+        await SceneManager.LoadSceneAsync("SignInScene"); 
+    }
+
     private void OnRoomToolStatusChanged(Status status) {
         CurStatus = status;
     }
@@ -45,12 +45,14 @@ public class RoomToolUI : SceneSingleton<RoomToolUI> {
         CurStatus = Status.None;
         _Button_Create.OnAfterClick.AddListener(OnClickCreate);
         _Button_Discard.OnAfterClick.AddListener(OnClickDiscard);
+        _Button_SignOut.OnAfterClick.AddListener(OnClickSignOut);
         LobbyHelper.Instance.RoomToolStatus.OnChanged.AddListener(OnRoomToolStatusChanged);
     }
 
     private void OnDisable() {
         _Button_Create.OnAfterClick.RemoveListener(OnClickCreate);
         _Button_Discard.OnAfterClick.RemoveListener(OnClickDiscard);
+        _Button_SignOut.OnAfterClick.RemoveListener(OnClickSignOut);
         LobbyHelper.Instance.RoomToolStatus.OnChanged.RemoveListener(OnRoomToolStatusChanged);
     }
 

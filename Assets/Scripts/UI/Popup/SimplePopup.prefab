@@ -65,7 +65,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 04d1c2c1d078bca448927759b38e2583, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 87eeafc18da6d7b4da6d9611ff0d86c0, type: 3}
   m_Type: 1
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -74,7 +74,7 @@ MonoBehaviour:
   m_FillClockwise: 1
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
-  m_PixelsPerUnitMultiplier: 1.5
+  m_PixelsPerUnitMultiplier: 0.25
 --- !u!1 &6561843313045738426
 GameObject:
   m_ObjectHideFlags: 0
@@ -84,7 +84,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 533121431891132496}
-  - component: {fileID: 8899271346669296682}
+  - component: {fileID: 8477747500264425093}
   m_Layer: 5
   m_Name: SimplePopup
   m_TagString: Untagged
@@ -113,7 +113,7 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: -100}
   m_SizeDelta: {x: 500, y: 100}
   m_Pivot: {x: 0.5, y: 1}
---- !u!114 &8899271346669296682
+--- !u!114 &8477747500264425093
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -122,7 +122,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 6561843313045738426}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6764cb968287cc240b005a153ec627e1, type: 3}
+  m_Script: {fileID: 11500000, guid: 477aa8d6d6a8039489c4fb71fed33093, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   _Text: {fileID: 1986579845428700475}

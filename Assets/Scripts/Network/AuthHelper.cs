@@ -15,9 +15,13 @@ public class AuthHelper : Singleton<AuthHelper> {
     }
 
     public async Task<bool> TryCachedSignInWithUnityAsync() {
-        if (_AuthService.SessionTokenExists) {
-            await _AuthService.SignInAnonymouslyAsync();
-            return true;
+        try {
+            if (_AuthService.SessionTokenExists) {
+                await _AuthService.SignInAnonymouslyAsync();
+                return _AuthService.IsSignedIn;
+            }
+        } catch (Exception ex) {
+            Debug.LogException(ex);
         }
         return false;
     }
@@ -26,12 +30,27 @@ public class AuthHelper : Singleton<AuthHelper> {
         if (await TryCachedSignInWithUnityAsync()) return;
 
         try {
+#if UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN
+            IntPtr _RedirectWindow = Win32.GetForegroundWindow();
+#endif
             await _UnityService.StartSignInAsync();
+#if UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN
+            Win32.FocusOn(_RedirectWindow);
+#endif
 
             while (_UnityService.AccessToken.IsNullOrEmpty()) await Task.Delay(100);
             await _AuthService.SignInWithUnityAsync(_UnityService.AccessToken);
+            
+            if (_AuthService.PlayerName.IsNullOrEmpty())
+                await _AuthService.UpdatePlayerNameAsync("No_Name");
         } catch (Exception e) {
             Debug.LogError(e.Message);
         }
+    }
+
+    public void SignOut() {
+        _UnityService.SignOut();
+        _AuthService.SignOut();
+        _AuthService.ClearSessionToken();
     }
 }
