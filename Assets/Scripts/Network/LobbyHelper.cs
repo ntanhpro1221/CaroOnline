@@ -120,19 +120,27 @@ public class LobbyHelper : Singleton<LobbyHelper> {
         return listLobby;
     }
 
-    //public async Task JoinLobbyByCode(string lobbyCode) {
-    //    try {
-    //        Lobby lobby = await _LobbyService.JoinLobbyByCodeAsync(lobbyCode);
+    public async Task JoinLobbyByCode(string lobbyCode) {
+        try {
+            Lobby lobby = await _LobbyService.JoinLobbyByCodeAsync(lobbyCode);
 
-    //        Debug.Log($"Joined lobby {lobby.Name}");
+            Debug.Log($"Joined lobby {lobby.Name}");
 
-    //        JoinedLobby.StartSync(lobby, false);
+            JoinedLobby.StartSync(lobby, false);
 
-    //        await JoinGame(JoinedLobby.Value.Data[KEY_RELAY_CODE].Value);
-    //    } catch (LobbyServiceException e) {
-    //        Debug.LogError(e.Message);
-    //    }
-    //}
+            _WaitForHostStartGameTask = new(WaitForHostStartGame);
+        } catch (ArgumentNullException e) {
+            PopupFactory.Instance.ShowSimplePopup("Vui lòng nhập mã phòng");
+        } catch (LobbyServiceException e) {
+            PopupFactory.Instance.ShowSimplePopup(e.Reason switch {
+                LobbyExceptionReason.InvalidJoinCode or
+                LobbyExceptionReason.ValidationError or
+                LobbyExceptionReason.ValidationError => "Mã phòng không hợp lệ",
+                LobbyExceptionReason.LobbyNotFound => $"Không tìm thấy phòng {lobbyCode}",
+                _ => e.Reason + ": " + e.Message,
+            });
+        }
+    }
 
     public async Task JoinLobbyById(string lobbyId) {
         try {

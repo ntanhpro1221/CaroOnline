@@ -15,12 +15,15 @@ public class SimplePopup : MonoBehaviour {
     }
 
     private void Open(TweenCallback callback) {
-        transform.DOShakeRotation(2, 20)
+        float duration = 1;
+        transform.DOShakeRotation(duration, 20)
             .OnComplete(callback);
     }
 
     private void Close() {
-        _Background.DOColor(new(1, 1, 1, 0), 0.4f)
+        float duration = 0.4f;
+        _Text.DOColor(new(1, 1, 1, 0), duration);
+        _Background.DOColor(new(1, 1, 1, 0), duration)
             .OnComplete(() => Destroy(gameObject));
     }
 

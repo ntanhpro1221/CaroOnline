@@ -36,7 +36,7 @@ public class BasePopup : MonoBehaviour {
         _BackgroundImg.DOColor(new(0, 0, 0, 0.5f), duration);
 
         _WindowRoot
-            .DOMove(Vector3.zero, duration)
+            .DOMove(new(Screen.width / 2, Screen.height / 2), duration)
             .SetEase(Ease.OutBack);
     }
 
@@ -46,7 +46,7 @@ public class BasePopup : MonoBehaviour {
         _BackgroundBtn.targetGraphic.DOColor(new(0, 0, 0, 0), duration);
 
         _WindowRoot
-            .DOMove(new Vector3(0, 2 * Camera.main.orthographicSize, 0), duration)
+            .DOMove(new(Screen.width / 2, Screen.height * 1.5f), duration)
             .SetEase(Ease.InBack)
             .OnComplete(() => Destroy(gameObject));
     }
@@ -61,12 +61,6 @@ public class BasePopup : MonoBehaviour {
         _ContentElement.gameObject.SetActive(true);
         _ContentTxt.gameObject.SetActive(true);
         _ContentTxt.text = content;
-        return this;
-    }
-
-    protected BasePopup WithCustomContent() {
-        _ContentElement.gameObject.SetActive(true);
-        _ContentTxt.gameObject.SetActive(false);
         return this;
     }
 

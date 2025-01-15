@@ -1,29 +1,45 @@
 ﻿using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class PopupFactory : Singleton<PopupFactory> {
-    private Transform _CanvasTrans;
-    private Transform CanvasTrans
-        => _CanvasTrans ??= GameObject.Find("Canvas").transform;
-
     [SerializeField] private GameObject _BasePopupObj;
+    [SerializeField] private GameObject _PopupWithInputFieldObj;
     [SerializeField] private GameObject _SimplePopupObj;
+    
+    protected override void Awake() {
+        base.Awake();
+        SceneManager.sceneLoaded += DestroyAllPopup;
+    }
+
+    private void OnDisable() {
+        SceneManager.sceneLoaded -= DestroyAllPopup;
+    }
+
+    private void DestroyAllPopup(Scene arg0, LoadSceneMode arg1) {
+        foreach (RectTransform child in transform) Destroy(child.gameObject);
+    }
 
     public BasePopup ShowPopup_ManualBuild()
-        => Instantiate(_BasePopupObj, CanvasTrans).GetComponent<BasePopup>();
+        => Instantiate(_BasePopupObj, transform).GetComponent<BasePopup>();
 
     public void ShowPopup_YesNo(
         string title,
         string content,
         SimpleButton.CreateOption noBtn,
         SimpleButton.CreateOption yesBtn)
-        => Instantiate(_BasePopupObj, CanvasTrans).GetComponent<BasePopup>()
+        => Instantiate(_BasePopupObj, transform).GetComponent<BasePopup>()
         .WithTitle(title)
         .WithContent(content)
         .WithButton(noBtn, true)
         .WithButton(yesBtn, true);
+    
+    public (BasePopup, PopupContent_InputFields) ShowPopup_WithInputField() {
+        GameObject obj = Instantiate(_PopupWithInputFieldObj, transform);
+        return (obj.GetComponent<BasePopup>(), obj.GetComponent<PopupContent_InputFields>());
+    }
 
     public void ShowSimplePopup(string content, float duration = 2)
-        => Instantiate(_SimplePopupObj, CanvasTrans).GetComponent<SimplePopup>().Init(
+        => Instantiate(_SimplePopupObj, transform).GetComponent<SimplePopup>().Init(
             content,
             duration);
 }
