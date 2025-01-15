@@ -1,24 +1,16 @@
 using System;
-using System.Runtime.InteropServices;
 using UnityEngine;
 
-public class Alice : MonoBehaviour { }
+[Serializable]
+public class Bob {
+    public int a;
+    public string b;
+}
 
-public static class Win32 {
-    [DllImport("user32.dll")]
-    public static extern IntPtr GetForegroundWindow();
-
-    [DllImport("user32.dll", SetLastError = true)]
-    public static extern bool SetWindowPos(IntPtr hWnd, int hWndInsertAfter, int x, int y, int cx, int cy, uint uFlags);
-
-
-    public static void SetAlwaysOnTop(IntPtr hWnd, bool onTop)
-        => SetWindowPos(hWnd,
-            onTop ? -1 : -2,
-            0, 0, 0, 0, 67);
-
-    public static void FocusOn(IntPtr hWnd) {
-        SetAlwaysOnTop(hWnd, true);
-        SetAlwaysOnTop(hWnd, false);
-    }
+public class Alice : MonoBehaviour {
+    //public PropertySet<ESound, Bob> set;
+    //private void Start() {
+    //    AudioSource source;
+    //    source.PlayOneShot()
+    //}
 }

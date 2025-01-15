@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3b9e4ea270ebcae48909df4fae31cfe3, type: 3}
+  m_Name: Sound Table
+  m_EditorClassIdentifier: 
+  _table:
+    m_KeyType: 0
+    m_Keys:
+    - MakeMove
+    - PointerDown
+    - PointerUp
+    - Victory
+    - Lose
+    m_Values:
+    - {fileID: 8300000, guid: 63b8668bbc72ad24cbcc9cb04a289784, type: 3}
+    - {fileID: 8300000, guid: 86e02ef8162da7f48869e78e9a00d87a, type: 3}
+    - {fileID: 8300000, guid: 64f78db75a4035244817fc5b3bc92e04, type: 3}
+    - {fileID: 8300000, guid: 36a26f332679c8e4e84e49fd9392f884, type: 3}
+    - {fileID: 8300000, guid: d73c9fb7a3b20d54f8dc33f5a7c76a73, type: 3}

@@ -28,11 +28,12 @@ public class MarkHelper : SceneSingleton<MarkHelper> {
 
         // Check true turn
         if (IsXTurn) {
-            Handheld.Vibrate();
+            VibrateHelper.Vibrate();
             PopupFactory.Instance.ShowSimplePopup("Not your turn!");
             return false;
         }
-        
+
+        SoundHelper.Play(SoundType.MakeMove);
         _Map.SetTile(pos, _Mark_O);
         IsXTurn = !IsXTurn;
         return true;
@@ -49,11 +50,12 @@ public class MarkHelper : SceneSingleton<MarkHelper> {
 
         // Check true turn
         if (!IsXTurn) {
-            Handheld.Vibrate();
+            VibrateHelper.Vibrate();
             PopupFactory.Instance.ShowSimplePopup("Not your turn!");
             return false;
         }
 
+        SoundHelper.Play(SoundType.MakeMove);
         _Map.SetTile(pos, _Mark_X);
         IsXTurn = !IsXTurn;
         return true;

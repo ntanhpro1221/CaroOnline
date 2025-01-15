@@ -46,6 +46,8 @@ public class LobbyHelper : Singleton<LobbyHelper> {
                 continue;
             }
 
+            VibrateHelper.Vibrate();
+
             string relayCode = await RelayHelper.CreateRelay();
 
             UpdateLobbyOptions options = new() {
@@ -97,6 +99,7 @@ public class LobbyHelper : Singleton<LobbyHelper> {
             JoinedLobby.StartSync(lobby, true);
 
             RoomToolStatus.Value = RoomToolUI.Status.Waiting;
+            VibrateHelper.Vibrate();
 
             _WaitForOpponentTask = new(WaitForOpponent);
         } catch (LobbyServiceException e) {
