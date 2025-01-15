@@ -8,13 +8,18 @@ using Unity.Services.Authentication;
 using System.Threading;
 using UnityEngine.SceneManagement;
 using Unity.Netcode;
+using System;
 
 public class LobbyHelper : Singleton<LobbyHelper> {
+    #region DATA QUERY RATE
     public const int RATE_QUERY = 1500;
     public const int RATE_HEARTBEAT = 1500;
     public const int RATE_GET = 1500;
+    #endregion
 
+    #region DATA KEY
     private const string KEY_RELAY_CODE = "Relay Code";
+    #endregion
 
     public BindableProperty<RoomToolUI.Status> RoomToolStatus { get; } = new();
     public RealtimeLobby JoinedLobby { get; private set; }
@@ -23,6 +28,7 @@ public class LobbyHelper : Singleton<LobbyHelper> {
     private ILobbyService _LobbyService;
     private ILobbyServiceSDK _LobbySDK;
     private CancellableTask _WaitForOpponentTask;
+    private CancellableTask _WaitForHostStartGameTask;
 
     public void Init() {
         _LobbyService = LobbyService.Instance;
@@ -35,30 +41,57 @@ public class LobbyHelper : Singleton<LobbyHelper> {
 
     private async Task WaitForOpponent(CancellationToken tokken) {
         while (!tokken.IsCancellationRequested) {
-            if (JoinedLobby.Value.Players.Count == 2) {
-                StartGame();
-                return;
+            if (JoinedLobby.Value.Players.Count != 2) {
+                await Task.Delay(RATE_GET);
+                continue;
             }
-            await Task.Delay(RATE_GET);
-        }
-    }
-
-    
-    public async Task CreateLobby(string lobbyName, int maxPlayers, bool isPrivate = false) {
-        try {
-            RoomToolStatus.Value = RoomToolUI.Status.Creating;
 
             string relayCode = await RelayHelper.CreateRelay();
 
-            CreateLobbyOptions options = new() {
-                IsPrivate = isPrivate,
+            UpdateLobbyOptions options = new() {
                 Data = new() {
                     { KEY_RELAY_CODE, new(DataObject.VisibilityOptions.Member, relayCode) }
                 },
             };
 
+            await _LobbyService.UpdateLobbyAsync(JoinedLobby.Value.Id, options);
+
+            JoinGame();
+
+            return;
+        }
+    }
+
+    private async Task WaitForHostStartGame(CancellationToken tokken) {
+        while (!tokken.IsCancellationRequested) {
+            string relayCode = JoinedLobby.Value.Data[KEY_RELAY_CODE].Value;
+            if (relayCode == null) {
+                await Task.Delay(RATE_GET);
+                continue;
+            }
+
+            await RelayHelper.JoinRelay(relayCode);
+
+            JoinGame();
+
+            return;
+        }
+    }
+
+    public async Task CreateLobby(string lobbyName, int maxPlayers, bool isPrivate = false) {
+        try {
+            RoomToolStatus.Value = RoomToolUI.Status.Creating;
+
+
+            CreateLobbyOptions options = new() {
+                IsPrivate = isPrivate,
+                Data = new() {
+                    { KEY_RELAY_CODE, new(DataObject.VisibilityOptions.Member, null) }
+                },
+            };
+
             Lobby lobby = await _LobbyService.CreateLobbyAsync(lobbyName, maxPlayers, options);
-        
+
             Debug.Log($"Created lobby {lobbyName} with code = {lobby.LobbyCode}");
 
             JoinedLobby.StartSync(lobby, true);
@@ -71,7 +104,6 @@ public class LobbyHelper : Singleton<LobbyHelper> {
         }
     }
 
-    
     public async Task<List<Lobby>> QueryLobbies() {
         List<Lobby> listLobby = null;
 
@@ -88,22 +120,20 @@ public class LobbyHelper : Singleton<LobbyHelper> {
         return listLobby;
     }
 
-    
-    public async Task JoinLobbyByCode(string lobbyCode) {
-        try {
-            Lobby lobby = await _LobbyService.JoinLobbyByCodeAsync(lobbyCode);
+    //public async Task JoinLobbyByCode(string lobbyCode) {
+    //    try {
+    //        Lobby lobby = await _LobbyService.JoinLobbyByCodeAsync(lobbyCode);
 
-            Debug.Log($"Joined lobby {lobby.Name}");
+    //        Debug.Log($"Joined lobby {lobby.Name}");
 
-            JoinedLobby.StartSync(lobby, false);
+    //        JoinedLobby.StartSync(lobby, false);
 
-            await JoinGame(JoinedLobby.Value.Data[KEY_RELAY_CODE].Value);
-        } catch (LobbyServiceException e) {
-            Debug.LogError(e.Message);
-        }
-    }
+    //        await JoinGame(JoinedLobby.Value.Data[KEY_RELAY_CODE].Value);
+    //    } catch (LobbyServiceException e) {
+    //        Debug.LogError(e.Message);
+    //    }
+    //}
 
-    
     public async Task JoinLobbyById(string lobbyId) {
         try {
             Lobby lobby = await _LobbyService.JoinLobbyByIdAsync(lobbyId);
@@ -112,7 +142,7 @@ public class LobbyHelper : Singleton<LobbyHelper> {
 
             JoinedLobby.StartSync(lobby, false);
 
-            await JoinGame(JoinedLobby.Value.Data[KEY_RELAY_CODE].Value);
+            _WaitForHostStartGameTask = new(WaitForHostStartGame);
         } catch (LobbyServiceException e) {
             Debug.LogError(e.Message);
         }
@@ -139,21 +169,17 @@ public class LobbyHelper : Singleton<LobbyHelper> {
             _WaitForOpponentTask?.Cancel();
             _WaitForOpponentTask = null;
 
+            _WaitForHostStartGameTask?.Cancel();
+            _WaitForHostStartGameTask = null;
+
             RoomToolStatus.Value = RoomToolUI.Status.None;
         } catch (LobbyServiceException e) {
             Debug.LogError(e.Message);
         }
     }
-    
-    public void StartGame() {
-        JoinedLobby.StopSync();
-        ToBattleScene();
-    }
 
-    
-    public async Task JoinGame(string relayCode) {
+    public void JoinGame() {
         JoinedLobby.StopSync();
-        await RelayHelper.JoinRelay(relayCode);
         ToBattleScene();
     }
 

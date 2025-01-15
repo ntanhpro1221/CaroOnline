@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
 using Unity.Services.Authentication;
 using Unity.Services.Authentication.PlayerAccounts;
@@ -12,6 +13,19 @@ public class AuthHelper : Singleton<AuthHelper> {
     public void Init() {
         _UnityService = PlayerAccountService.Instance;
         _AuthService = AuthenticationService.Instance;
+    }
+    
+    // JUST DEBUG
+    public async Task<bool> SignInAnonymouslyAsync() {
+        try {
+            await _AuthService.SignInAnonymouslyAsync();
+        } catch (Exception ex) { 
+            await _AuthService.SignInAnonymouslyAsync();
+        }
+
+        print("Signed in with id: " + _AuthService.PlayerId);
+
+        return true;
     }
 
     public async Task<bool> TryCachedSignInWithUnityAsync() {
