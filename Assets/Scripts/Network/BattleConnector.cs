@@ -1,6 +1,7 @@
 ﻿using System.Threading.Tasks;
 using Unity.Netcode;
 using Unity.Services.Authentication;
+using UnityEngine;
 using UnityEngine.SceneManagement;
 
 public class BattleConnector : SceneSingleton<BattleConnector> {
@@ -32,18 +33,25 @@ public class BattleConnector : SceneSingleton<BattleConnector> {
     }
 
     public void HandleResult(bool win) {
-        PopupFactory.Instance.ShowPopup(
+        PopupFactory.Instance.ShowPopup_YesNo(
             win ? "BẠN ĐÃ THẮNG" : "BẠN ĐÃ THUA",
             win ? "+500 điểm danh vọng!" : "-500 điểm danh vọng",
-            "Về sảnh chính",
-            () => {
-                LobbyHelper.Instance.RelayHelper.Shutdown();
-                SceneManager.LoadScene("LobbyScene");
+            new() {
+                content = "Về sảnh chính",
+                callback = () => {
+                    LobbyHelper.Instance.RelayHelper.Shutdown();
+                    SceneManager.LoadScene("LobbyScene");
+                },
+                backgroundColor = Color.red,
             },
-            true,
-            "Gỡ",
-            () => print("Gạ gạ gạ"),
-            true);
+            new() {
+                content = "Làm lại",
+                callback = () => {
+                    print("Gạ gạ gạ");
+                },
+                backgroundColor = Color.green,
+            }
+        );
     }
 
     private void OnDisable() {

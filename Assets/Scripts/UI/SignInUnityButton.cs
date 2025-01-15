@@ -11,11 +11,15 @@ public class SignInUnityButton : MonoBehaviour {
         while (!signInTask.IsCompleted) yield return null;
 
         if (!AuthenticationService.Instance.IsSignedIn) {
-            PopupFactory.Instance.ShowPopup(
-                "Đăng nhập không thành công",
-                signInTask.Status + ": " + signInTask.Exception?.Message,
-                "Trở lại", null, true,
-                "Thử lại", null, true);
+            PopupFactory.Instance.ShowPopup_ManualBuild()
+                .WithTitle("Đăng nhập không thành công")
+                .WithButton(
+                    new() {
+                        content = "Thử lại",
+                        backgroundColor = Color.green,
+                    },
+                    true
+                );
         } else {
             PopupFactory.Instance.ShowSimplePopup("Thành công");
             SceneManager.LoadScene("LobbyScene");

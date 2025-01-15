@@ -4,7 +4,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class SimplePopupUI : MonoBehaviour {
+public class SimplePopup : MonoBehaviour {
     [SerializeField] private TextMeshProUGUI _Text;
     [SerializeField] private Image _Background;
     private float _Duration;
