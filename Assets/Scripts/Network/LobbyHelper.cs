@@ -124,6 +124,7 @@ public class LobbyHelper : Singleton<LobbyHelper> {
     }
 
     public async Task JoinLobbyByCode(string lobbyCode) {
+#pragma warning disable CS0168 // Variable is declared but never used
         try {
             Lobby lobby = await _LobbyService.JoinLobbyByCodeAsync(lobbyCode);
 
@@ -135,6 +136,7 @@ public class LobbyHelper : Singleton<LobbyHelper> {
         } catch (ArgumentNullException e) {
             PopupFactory.Instance.ShowSimplePopup("Vui lòng nhập mã phòng");
         } catch (LobbyServiceException e) {
+#pragma warning restore CS0168 // Variable is declared but never used
             PopupFactory.Instance.ShowSimplePopup(e.Reason switch {
                 LobbyExceptionReason.InvalidJoinCode or
                 LobbyExceptionReason.ValidationError or

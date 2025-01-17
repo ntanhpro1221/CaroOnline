@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "368495500101",
+    "firebase_url": "https://carogame-a47bc-default-rtdb.asia-southeast1.firebasedatabase.app",
+    "project_id": "carogame-a47bc",
+    "storage_bucket": "carogame-a47bc.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:368495500101:android:dd1d80929385fbbf653c2c",
+        "android_client_info": {
+          "package_name": "com.NGDtuanh.CaroGame"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "368495500101-bc3pifpq1q3unvde685t4pgh3s0995a7.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.NGDtuanh.CaroGame",
+            "certificate_hash": "8241e5161a9fd461abf6e670dbd15606b89e6eb0"
+          }
+        },
+        {
+          "client_id": "368495500101-qq0bm0kvi05rrlfto5aqcoqoil17o7nf.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCit2qs6rX6Ex4Vpbw6xO9EHEu-pFSywIo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "368495500101-qq0bm0kvi05rrlfto5aqcoqoil17o7nf.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

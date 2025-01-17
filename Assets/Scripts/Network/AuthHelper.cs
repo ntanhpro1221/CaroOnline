@@ -17,11 +17,13 @@ public class AuthHelper : Singleton<AuthHelper> {
     
     // JUST DEBUG
     public async Task<bool> SignInAnonymouslyAsync() {
+#pragma warning disable CS0168 // Unnecessary assignment of a value
         try {
             await _AuthService.SignInAnonymouslyAsync();
         } catch (Exception ex) { 
-            await _AuthService.SignInAnonymouslyAsync();
+            await _AuthService.SignInAnonymouslyAsync(); 
         }
+#pragma warning restore CS0168 // Unnecessary assignment of a value
 
         print("Signed in with id: " + _AuthService.PlayerId);
 
