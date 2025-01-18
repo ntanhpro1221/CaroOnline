@@ -9,7 +9,10 @@ using UnityEngine.Events;
 [Serializable]
 public class BindableProperty<T> {
     [SerializeField] private T m_Value = default;
-    public UnityEvent<T> OnChanged { get; } = new();
+
+    public UnityEvent<T> OnChanged 
+        { get; } = new();
+
     public T Value {
         get => m_Value;
         set {
@@ -17,14 +20,15 @@ public class BindableProperty<T> {
                 OnChanged.Invoke(m_Value = value);
         }
     }
-    public override string ToString() => m_Value.ToString();
-    public static implicit operator string(BindableProperty<T> obj) => obj.ToString();
+
+    public override string ToString() 
+        => m_Value.ToString();
+
+    public static implicit operator string(BindableProperty<T> obj) 
+        => obj.ToString();
 }
 
 #if UNITY_EDITOR
-/// <summary>
-/// Enable edit PropertySet in Inspector
-/// </summary>
 [CustomPropertyDrawer(typeof(BindableProperty<>), true)]
 public class BindablePropertyDrawer : PropertyDrawer {
     private SerializedProperty m_Value;
@@ -36,7 +40,7 @@ public class BindablePropertyDrawer : PropertyDrawer {
 
     public override void OnGUI(Rect position, SerializedProperty property, GUIContent label) {
         position.height = EditorGUI.GetPropertyHeight(m_Value);
-        EditorGUI.PropertyField(position, m_Value, label);
+        EditorGUI.PropertyField(position, m_Value, new(property.displayName), true);
     }
 }
 #endif

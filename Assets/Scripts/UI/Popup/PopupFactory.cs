@@ -25,8 +25,8 @@ public class PopupFactory : Singleton<PopupFactory> {
     public void ShowPopup_YesNo(
         string title,
         string content,
-        SimpleButton.CreateOption noBtn,
-        SimpleButton.CreateOption yesBtn)
+        ButtonField.CreateOption noBtn,
+        ButtonField.CreateOption yesBtn)
         => Instantiate(_BasePopupObj, transform).GetComponent<BasePopup>()
         .WithTitle(title)
         .WithContent(content)

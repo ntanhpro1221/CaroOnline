@@ -519,7 +519,7 @@ Transform:
   m_GameObject: {fileID: 904479333}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -2.6512353, y: 4.293869, z: 90}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -858,15 +858,16 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_UserData:
-    id_firebase: 
-    id_unity: 
-    name: 
-    elo: 0
-    followed_player_id_firebase: []
-    setting:
-      music: 0
-      sound: 0
-      vibration: 0
+    m_Value:
+      id_firebase: R2b9HQU5Q6bRpyKUYJlrnWp5C3s2
+      id_unity: iZgqCMYkWYcrjarFNgb1Ec9dVmgX
+      name: "Tu\u1EA5n Anh m\xE0u xanh nh\u1EA1t"
+      elo: 12
+      followed_player_id_firebase: []
+      setting:
+        music: 1
+        sound: 1
+        vibration: 1
 --- !u!4 &1263929019
 Transform:
   m_ObjectHideFlags: 0
@@ -1516,6 +1517,10 @@ PrefabInstance:
     - target: {fileID: 6470497949939255914, guid: 8f1e26a505aafaa42a4c16c5e2b4f0ee, type: 3}
       propertyPath: m_Name
       value: PopupFactory (Singleton)
+      objectReference: {fileID: 0}
+    - target: {fileID: 6470497949939255914, guid: 8f1e26a505aafaa42a4c16c5e2b4f0ee, type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

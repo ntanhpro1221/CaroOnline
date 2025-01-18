@@ -6,7 +6,7 @@ public class LabeledInputField : MonoBehaviour {
     [SerializeField] private TMP_InputField _InputField;
     [SerializeField] private TextMeshProUGUI _PlaceholderTxt;
 
-    public string Input 
+    public string Text 
         => _InputField.text;
 
     public LabeledInputField WithLabel(string label) {

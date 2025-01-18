@@ -10,10 +10,10 @@ public class DataHelper : Singleton<DataHelper> {
     public static DatabaseReference RootDB => FirebaseDatabase.DefaultInstance.RootReference;
     public static DatabaseReference CurrentUserDB => RootDB.Child(AuthHelper.User.UserId);
 
-    [SerializeField] private UserData m_UserData;
+    [SerializeField] private BindableProperty<UserData> m_UserData;
     public static UserData UserData {
-        get => Instance.m_UserData;
-        private set => Instance.m_UserData = value;
+        get => Instance.m_UserData.Value;
+        private set => Instance.m_UserData.Value = value;
     }
 
     private static async Task<T> LoadObjectAsync<T>(DatabaseReference dataRef) {
@@ -77,6 +77,7 @@ public class DataHelper : Singleton<DataHelper> {
     [CustomEditor(typeof(DataHelper))]
     public class DataManagerEditor : Editor {
         private SerializedProperty m_UserData;
+        private bool m_UserData_Fold = false;
 
         private void OnEnable() {
             m_UserData = serializedObject.FindProperty(nameof(DataHelper.m_UserData));
@@ -98,13 +99,13 @@ public class DataHelper : Singleton<DataHelper> {
         private void RenderDataField(SerializedProperty data, params EditorButton[] buttons) {
             // Label
             EditorGUILayout.BeginHorizontal();
-            bool fold = EditorGUILayout.PropertyField(data, false);
+            m_UserData_Fold = EditorGUILayout.Foldout(m_UserData_Fold, data.displayName);
             foreach (var button in buttons) button.Display();
             EditorGUILayout.EndHorizontal();
 
             // Child element
             EditorGUI.indentLevel++;
-            if (fold) foreach (var ite in GetDirectChilds(data))
+            if (m_UserData_Fold) foreach (var ite in GetDirectChilds(data))
                     EditorGUILayout.PropertyField(ite);
             EditorGUI.indentLevel--;
         }

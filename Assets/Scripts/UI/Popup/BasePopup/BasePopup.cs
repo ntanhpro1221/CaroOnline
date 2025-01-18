@@ -64,10 +64,10 @@ public class BasePopup : MonoBehaviour {
         return this;
     }
 
-    public BasePopup WithButton(SimpleButton.CreateOption option, bool close = false) {
+    public BasePopup WithButton(ButtonField.CreateOption option, bool close = false) {
         _ButtonElement.gameObject.SetActive(true);
         if (close) option.callback += Disappear;
-        Instantiate(_SimpleBtn, _ButtonRoot).GetComponent<SimpleButton>().Build(option);
+        Instantiate(_SimpleBtn, _ButtonRoot).GetComponent<ButtonField>().Build(option);
         return this;
     }
 }

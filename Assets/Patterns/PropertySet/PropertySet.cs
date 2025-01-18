@@ -108,7 +108,7 @@ public class PropertySetDrawer : PropertyDrawer {
 
     public override void OnGUI(Rect position, SerializedProperty property, GUIContent label) {
         EditorGUI.BeginProperty(position, label, property);
-        Rect labelPosition = new Rect(position.x, position.y, position.width, LineHeight);
+        Rect labelPosition = new(position.x, position.y, position.width, LineHeight);
         if (property.isExpanded = EditorGUI.Foldout(labelPosition, property.isExpanded, label, true)) {
             ++EditorGUI.indentLevel;
             ++EditorGUI.indentLevel;

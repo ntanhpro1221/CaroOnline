@@ -69,7 +69,7 @@ public class RoomToolUI : SceneSingleton<RoomToolUI> {
                 new() {
                     content = "Tham gia",
                     backgroundColor = Color.green,
-                    callback = async () => await LobbyHelper.Instance.JoinLobbyByCode(field.Input),
+                    callback = async () => await LobbyHelper.Instance.JoinLobbyByCode(field.Text),
                 });
     }
 
