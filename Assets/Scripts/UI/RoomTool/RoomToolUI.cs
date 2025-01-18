@@ -41,7 +41,7 @@ public class RoomToolUI : SceneSingleton<RoomToolUI> {
 
     private async void OnClickCreate() {
         await LobbyHelper.Instance.CreateLobby(
-            AuthenticationService.Instance.PlayerName?.Replace('_', ' ') ?? "null name", 
+            AuthHelper.User.DisplayName, 
             2); 
     }
 
@@ -50,7 +50,7 @@ public class RoomToolUI : SceneSingleton<RoomToolUI> {
     }
     
     private async void OnClickSignOut() {
-        AuthHelper.Instance.SignOut();
+        AuthHelper.SignOut();
         await SceneManager.LoadSceneAsync("SignInScene"); 
     }
     

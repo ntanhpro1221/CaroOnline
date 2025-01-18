@@ -36,11 +36,10 @@ public class GameBooster : MonoBehaviour {
         while (!initServiceTask.IsCompleted) yield return null;
         CurProgress += VAL_INIT_UGS;
         LobbyHelper.Instance.Init();
-        AuthHelper.Instance.Init();
 
         // TRY SIGN IN WITH CACHED UNITY ACCOUNT
-        //Task<bool> trySignInCachedUnityAccountTask = AuthHelper.Instance.TryCachedSignInWithUnityAsync();
-        Task<bool> trySignInCachedUnityAccountTask = AuthHelper.Instance.SignInAnonymouslyAsync();
+        Task<bool> trySignInCachedUnityAccountTask = AuthHelper.TryCachedSignInWithUnityAsync();
+        //Task<bool> trySignInCachedUnityAccountTask = AuthHelper.SignInAnonymouslyAsync();
         while (!trySignInCachedUnityAccountTask.IsCompleted) yield return null;
         CurProgress += VAL_SIGNIN;
         

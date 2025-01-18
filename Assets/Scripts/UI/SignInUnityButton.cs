@@ -7,8 +7,9 @@ using UnityEngine.SceneManagement;
 [RequireComponent(typeof(ClickyButton))]
 public class SignInUnityButton : MonoBehaviour {
     private IEnumerator OnClickSignInUnity() {
-        Task signInTask = AuthHelper.Instance.SignInWithUnityAsync();
-        while (!signInTask.IsCompleted) yield return null;
+        bool isSignInCompleted = false;
+        Task _ = AuthHelper.SignInWithGoogle(success => isSignInCompleted = true);
+        while (!isSignInCompleted) yield return null;
 
         if (!AuthenticationService.Instance.IsSignedIn) {
             PopupFactory.Instance.ShowPopup_ManualBuild()

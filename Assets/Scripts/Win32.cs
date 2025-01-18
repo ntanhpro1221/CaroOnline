@@ -1,21 +1,19 @@
-﻿using System;
+﻿#if UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN
+using System;
 using System.Runtime.InteropServices;
-
-public static class Win32 {
-    [DllImport("user32.dll")]
+using System.Text;
+public class Win32 {
+    [DllImport("user32.dll", SetLastError = true)]
     public static extern IntPtr GetForegroundWindow();
 
-    [DllImport("user32.dll", SetLastError = true)]
-    public static extern bool SetWindowPos(IntPtr hWnd, int hWndInsertAfter, int x, int y, int cx, int cy, uint uFlags);
 
+    [DllImport("user32.dll", CharSet = CharSet.Auto)]
+    public static extern int GetWindowText(IntPtr hwnd, StringBuilder lpString, int nMaxCount);
 
-    public static void SetAlwaysOnTop(IntPtr hWnd, bool onTop)
-        => SetWindowPos(hWnd,
-            onTop ? -1 : -2,
-            0, 0, 0, 0, 67);
-
-    public static void FocusOn(IntPtr hWnd) {
-        SetAlwaysOnTop(hWnd, true);
-        SetAlwaysOnTop(hWnd, false);
+    public static string GetForegroundWindowText() {
+        StringBuilder windowText = new(2048);
+        GetWindowText(GetForegroundWindow(), windowText, windowText.Capacity);
+        return windowText.ToString();
     }
 }
+#endif
