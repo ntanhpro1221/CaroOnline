@@ -16,7 +16,7 @@ public class RoomToolUI : SceneSingleton<RoomToolUI> {
     [Space]
     [SerializeField] private ClickyButton _Button_Discard;
     [Space]
-    [SerializeField] private ClickyButton _Button_SignOut;
+    [SerializeField] private ClickyButton _Button_Setting;
     [Space]
     [SerializeField] private ClickyButton _Button_JoinWithCode;
 
@@ -36,7 +36,7 @@ public class RoomToolUI : SceneSingleton<RoomToolUI> {
     
     private void OnClickCopyRoomCode() {
         GUIUtility.systemCopyBuffer = LobbyHelper.Instance.JoinedLobby.Value?.LobbyCode ?? "NULL";
-        PopupFactory.Instance.ShowSimplePopup("Đã copy mã phòng");
+        PopupFactory.ShowSimplePopup("Đã copy mã phòng");
     }
 
     private async void OnClickCreate() {
@@ -49,13 +49,12 @@ public class RoomToolUI : SceneSingleton<RoomToolUI> {
         await LobbyHelper.Instance.DeleteHostedLobby();
     }
     
-    private async void OnClickSignOut() {
-        AuthHelper.SignOut();
-        await SceneManager.LoadSceneAsync("SignInScene"); 
+    private void OnClickSignOut() {
+        PopupFactory.ShowSettingWindow();
     }
     
     private void OnClickJoinWithCode() {
-        var (popup, fields) = PopupFactory.Instance.ShowPopup_WithInputField();
+        var (popup, fields) = PopupFactory.ShowPopup_WithInputField();
         LabeledInputField field = fields.WithField("Mã phòng", "Nhập mã phòng").Item2;
         popup
             .WithTitle("Tham gia bằng mã phòng từ đối thủ của bạn")
@@ -82,7 +81,7 @@ public class RoomToolUI : SceneSingleton<RoomToolUI> {
         _Button_CopyRoomCode.OnAfterClick.AddListener(OnClickCopyRoomCode);
         _Button_Create.OnAfterClick.AddListener(OnClickCreate);
         _Button_Discard.OnAfterClick.AddListener(OnClickDiscard);
-        _Button_SignOut.OnAfterClick.AddListener(OnClickSignOut);
+        _Button_Setting.OnAfterClick.AddListener(OnClickSignOut);
         _Button_JoinWithCode.OnAfterClick.AddListener(OnClickJoinWithCode);
         LobbyHelper.Instance.RoomToolStatus.OnChanged.AddListener(OnRoomToolStatusChanged);
     }
@@ -91,7 +90,7 @@ public class RoomToolUI : SceneSingleton<RoomToolUI> {
         _Button_CopyRoomCode.OnAfterClick.RemoveListener(OnClickCopyRoomCode);
         _Button_Create.OnAfterClick.RemoveListener(OnClickCreate);
         _Button_Discard.OnAfterClick.RemoveListener(OnClickDiscard);
-        _Button_SignOut.OnAfterClick.RemoveListener(OnClickSignOut);
+        _Button_Setting.OnAfterClick.RemoveListener(OnClickSignOut);
         _Button_JoinWithCode.OnAfterClick.RemoveListener(OnClickJoinWithCode);
         LobbyHelper.Instance.RoomToolStatus.OnChanged.RemoveListener(OnRoomToolStatusChanged);
     }

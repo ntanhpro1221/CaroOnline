@@ -134,10 +134,10 @@ public class LobbyHelper : Singleton<LobbyHelper> {
 
             _WaitForHostStartGameTask = new(WaitForHostStartGame);
         } catch (ArgumentNullException e) {
-            PopupFactory.Instance.ShowSimplePopup("Vui lòng nhập mã phòng");
+            PopupFactory.ShowSimplePopup("Vui lòng nhập mã phòng");
         } catch (LobbyServiceException e) {
 #pragma warning restore CS0168 // Variable is declared but never used
-            PopupFactory.Instance.ShowSimplePopup(e.Reason switch {
+            PopupFactory.ShowSimplePopup(e.Reason switch {
                 LobbyExceptionReason.InvalidJoinCode or
                 LobbyExceptionReason.ValidationError or
                 LobbyExceptionReason.ValidationError => "Mã phòng không hợp lệ",

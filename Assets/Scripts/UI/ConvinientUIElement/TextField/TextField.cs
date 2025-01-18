@@ -4,7 +4,7 @@ using UnityEngine;
 public class TextField : MonoBehaviour { 
     [SerializeField] private TextMeshProUGUI _Content;
 
-    public TextField WithLabel(string content) {
+    public TextField WithContent(string content) {
         _Content.text = content;
         return this;
     }

@@ -5,6 +5,7 @@ public class PopupFactory : Singleton<PopupFactory> {
     [SerializeField] private GameObject _BasePopupObj;
     [SerializeField] private GameObject _PopupWithInputFieldObj;
     [SerializeField] private GameObject _SimplePopupObj;
+    [SerializeField] private GameObject _SettingWindowObj;
     
     protected override void Awake() {
         base.Awake();
@@ -15,31 +16,34 @@ public class PopupFactory : Singleton<PopupFactory> {
         SceneManager.sceneLoaded -= DestroyAllPopup;
     }
 
-    private void DestroyAllPopup(Scene arg0, LoadSceneMode arg1) {
-        foreach (RectTransform child in transform) Destroy(child.gameObject);
+    private static void DestroyAllPopup(Scene arg0, LoadSceneMode arg1) {
+        foreach (RectTransform child in Instance.transform) Destroy(child.gameObject);
     }
 
-    public BasePopup ShowPopup_ManualBuild()
-        => Instantiate(_BasePopupObj, transform).GetComponent<BasePopup>();
+    public static BasePopup ShowPopup_ManualBuild()
+        => Instantiate(Instance._BasePopupObj, Instance.transform).GetComponent<BasePopup>();
 
-    public void ShowPopup_YesNo(
+    public static void ShowPopup_YesNo(
         string title,
         string content,
         ButtonField.CreateOption noBtn,
         ButtonField.CreateOption yesBtn)
-        => Instantiate(_BasePopupObj, transform).GetComponent<BasePopup>()
+        => Instantiate(Instance._BasePopupObj, Instance.transform).GetComponent<BasePopup>()
         .WithTitle(title)
         .WithContent(content)
         .WithButton(noBtn, true)
         .WithButton(yesBtn, true);
     
-    public (BasePopup, PopupContent_InputFields) ShowPopup_WithInputField() {
-        GameObject obj = Instantiate(_PopupWithInputFieldObj, transform);
+    public static (BasePopup, PopupContent_InputFields) ShowPopup_WithInputField() {
+        GameObject obj = Instantiate(Instance._PopupWithInputFieldObj, Instance.transform);
         return (obj.GetComponent<BasePopup>(), obj.GetComponent<PopupContent_InputFields>());
     }
 
-    public void ShowSimplePopup(string content, float duration = 2)
-        => Instantiate(_SimplePopupObj, transform).GetComponent<SimplePopup>().Init(
+    public static void ShowSimplePopup(string content, float duration = 2)
+        => Instantiate(Instance._SimplePopupObj, Instance.transform).GetComponent<SimplePopup>().Init(
             content,
             duration);
+
+    public static void ShowSettingWindow()
+        => Instantiate(Instance._SettingWindowObj, Instance.transform).GetComponent<SettingWindowUI>().Init();
 }

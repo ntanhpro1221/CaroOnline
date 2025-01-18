@@ -34,7 +34,7 @@ public class BattleConnector : SceneSingleton<BattleConnector> {
 
     public void HandleResult(bool win) {
         SoundHelper.Play(win ? SoundType.Victory : SoundType.Lose);
-        PopupFactory.Instance.ShowPopup_YesNo(
+        PopupFactory.ShowPopup_YesNo(
             win ? "BẠN ĐÃ THẮNG" : "BẠN ĐÃ THUA",
             win ? "+500 điểm danh vọng!" : "-500 điểm danh vọng",
             new() {

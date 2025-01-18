@@ -29,7 +29,7 @@ public class MarkHelper : SceneSingleton<MarkHelper> {
         // Check true turn
         if (IsXTurn) {
             VibrateHelper.Vibrate();
-            PopupFactory.Instance.ShowSimplePopup("Not your turn!");
+            PopupFactory.ShowSimplePopup("Not your turn!");
             return false;
         }
 
@@ -51,7 +51,7 @@ public class MarkHelper : SceneSingleton<MarkHelper> {
         // Check true turn
         if (!IsXTurn) {
             VibrateHelper.Vibrate();
-            PopupFactory.Instance.ShowSimplePopup("Not your turn!");
+            PopupFactory.ShowSimplePopup("Not your turn!");
             return false;
         }
 

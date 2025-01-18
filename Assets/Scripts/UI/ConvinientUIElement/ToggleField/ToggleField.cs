@@ -1,5 +1,6 @@
 ﻿using TMPro;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.UI;
 
 public class ToggleField : MonoBehaviour {
@@ -19,8 +20,13 @@ public class ToggleField : MonoBehaviour {
         return this;
     }
 
-    public ToggleField WithInitValue(bool value) {
+    public ToggleField WithValue(bool value) {
         _Toggle.isOn = value;
+        return this;
+    }
+
+    public ToggleField WithCallback(UnityAction<bool> callback) {
+        _Toggle.onValueChanged.AddListener(callback);
         return this;
     }
 }

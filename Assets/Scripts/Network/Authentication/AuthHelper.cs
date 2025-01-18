@@ -76,10 +76,11 @@ public class AuthHelper {
         }
     }
 
-    public static void SignOut() {
+    public static void SignOut(Action callback = null) {
         _UnityService.SignOut();
         _UnityService.ClearSessionToken();
         _FirebaseService.SignOut();
         DataHelper.ClearCachedUserData();
+        callback?.Invoke();
     }
 }

@@ -8,6 +8,11 @@ public class LabeledInputField : MonoBehaviour {
 
     public string Text 
         => _InputField.text;
+    
+    public LabeledInputField WithText(string text) {
+        _InputField.text = text;
+        return this;
+    }
 
     public LabeledInputField WithLabel(string label) {
         _LabelTxt.text = label;

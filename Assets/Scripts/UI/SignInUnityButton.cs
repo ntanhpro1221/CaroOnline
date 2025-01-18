@@ -12,7 +12,7 @@ public class SignInUnityButton : MonoBehaviour {
         while (!isSignInCompleted) yield return null;
 
         if (!AuthenticationService.Instance.IsSignedIn) {
-            PopupFactory.Instance.ShowPopup_ManualBuild()
+            PopupFactory.ShowPopup_ManualBuild()
                 .WithTitle("Đăng nhập không thành công")
                 .WithButton(
                     new() {
@@ -22,7 +22,7 @@ public class SignInUnityButton : MonoBehaviour {
                     true
                 );
         } else {
-            PopupFactory.Instance.ShowSimplePopup("Thành công");
+            PopupFactory.ShowSimplePopup("Thành công");
             SceneManager.LoadScene("LobbyScene");
         }
     }
