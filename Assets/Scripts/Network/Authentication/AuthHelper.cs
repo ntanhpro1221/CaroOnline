@@ -18,6 +18,7 @@ public class AuthHelper {
         _FirebaseService.CurrentUser != null;
 
     public static FirebaseUser User => _FirebaseService.CurrentUser;
+    public static string id_unity => _UnityService.PlayerId;
 
     // JUST DEBUG
     public static async Task<bool> SignInAnonymouslyAsync() {
@@ -35,7 +36,7 @@ public class AuthHelper {
 
         return IsSignedIn;
     }
-
+    
     public static async Task<bool> TryCachedSignInWithUnityAsync() {
         try {
             if (!_UnityService.SessionTokenExists) return false;
@@ -50,6 +51,8 @@ public class AuthHelper {
 
         if (!_UnityService.IsSignedIn) return false;
 
+        await DataHelper.LoadCurrentUserDataAsync();
+
         return true;
     }
 
@@ -63,6 +66,9 @@ public class AuthHelper {
                 await Task.WhenAll(
                     _UnityService.SignInWithGoogleAsync(authResponse.id_token),
                     _FirebaseService.SignInWithCredentialAsync(GoogleAuthProvider.GetCredential(authResponse.id_token, authResponse.access_token)));
+
+                if (IsSignedIn) await DataHelper.LoadCurrentUserDataAsync();
+
                 callback?.Invoke(IsSignedIn);
             });
         } catch (Exception e) {
@@ -74,5 +80,6 @@ public class AuthHelper {
         _UnityService.SignOut();
         _UnityService.ClearSessionToken();
         _FirebaseService.SignOut();
+        DataHelper.ClearCachedUserData();
     }
 }
