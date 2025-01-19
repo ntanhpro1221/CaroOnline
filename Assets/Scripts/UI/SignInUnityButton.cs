@@ -23,7 +23,7 @@ public class SignInUnityButton : MonoBehaviour {
                 );
         } else {
             PopupFactory.ShowSimplePopup("Thành công");
-            SceneManager.LoadScene("LobbyScene");
+            LoadSceneHelper.LoadScene("LobbyScene");
         }
     }
 

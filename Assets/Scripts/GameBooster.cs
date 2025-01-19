@@ -19,9 +19,8 @@ public class GameBooster : MonoBehaviour {
         }
     }
 
-    private const float VAL_INIT_UGS = 0.2f;
-    private const float VAL_SIGNIN = 0.4f;
-    private const float VAL_SCENE = 0.4f;
+    private const float VAL_INIT_UGS = 0.5f;
+    private const float VAL_SIGNIN = 0.5f;
 
     private void Start() {
         StartCoroutine(Boost());
@@ -38,20 +37,12 @@ public class GameBooster : MonoBehaviour {
 
         // TRY SIGN IN WITH CACHED UNITY ACCOUNT
         Task<bool> trySignInCachedUnityAccountTask = AuthHelper.TryCachedSignInWithUnityAsync();
-        //Task<bool> trySignInCachedUnityAccountTask = AuthHelper.SignInAnonymouslyAsync();
         while (!trySignInCachedUnityAccountTask.IsCompleted) yield return null;
         CurProgress += VAL_SIGNIN;
         
-        AsyncOperation loadSceneTask = SceneManager.LoadSceneAsync(
+        LoadSceneHelper.LoadScene(
             trySignInCachedUnityAccountTask.Result ?
             "LobbyScene" :
             "SignInScene");
-        float prevProgress = CurProgress;
-        while (!loadSceneTask.isDone) {
-            CurProgress =
-                prevProgress +
-                VAL_SCENE * loadSceneTask.progress;
-            yield return null;
-        }
     }
 }

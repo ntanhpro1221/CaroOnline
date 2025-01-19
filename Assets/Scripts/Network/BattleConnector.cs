@@ -41,7 +41,7 @@ public class BattleConnector : SceneSingleton<BattleConnector> {
                 content = "Về sảnh chính",
                 callback = () => {
                     LobbyHelper.Instance.RelayHelper.Shutdown();
-                    SceneManager.LoadScene("LobbyScene");
+                    LoadSceneHelper.LoadScene("LobbyScene");
                 },
                 backgroundColor = Color.red,
             },

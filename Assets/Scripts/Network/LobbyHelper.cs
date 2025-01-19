@@ -197,7 +197,7 @@ public class LobbyHelper : Singleton<LobbyHelper> {
     }
 
     private void ToBattleScene() {
-        SceneManager.LoadScene("BattleScene");
+        LoadSceneHelper.LoadScene("BattleScene");
     }
 
     private void OnDisable() {

@@ -1,11 +1,8 @@
 using UnityEngine;
 
-public enum ETest {
-    HP, 
-    MP
-}
 public class Alice : MonoBehaviour {
-    [SerializeField] private UserData raw;
-    [SerializeField] private BindableProperty<UserData> wrapped;
-    [SerializeField] private PropertySet<ETest, UserData> set;
+    public void LoadAlice() { LoadSceneHelper.LoadScene("Alice"); } 
+    public void LoadAliceAsync() { LoadSceneHelper.LoadScene("Alice", LoadSceneHelper.LoadStyle.Image); }
+    public void LoadBob() { LoadSceneHelper.LoadScene("Bob"); }
+    public void LoadBobAsync() { LoadSceneHelper.LoadScene("Bob", LoadSceneHelper.LoadStyle.Image); }
 }

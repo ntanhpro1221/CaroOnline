@@ -1,8 +1,5 @@
-﻿using System;
-using TMPro;
-using Unity.Services.Authentication;
+﻿using TMPro;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
 public class RoomToolUI : SceneSingleton<RoomToolUI> {
     [Space]

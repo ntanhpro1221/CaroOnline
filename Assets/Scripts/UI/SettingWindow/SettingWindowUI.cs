@@ -1,6 +1,4 @@
-﻿using System.Threading.Tasks;
-using UnityEngine;
-using UnityEngine.SceneManagement;
+﻿using UnityEngine;
 
 [RequireComponent(typeof(BasePopup))]
 public class SettingWindowUI : MonoBehaviour {
@@ -76,11 +74,9 @@ public class SettingWindowUI : MonoBehaviour {
             
         // Sign out
         _SignOutBtn.WithCallback(() => {
-            AsyncOperation operation = SceneManager.LoadSceneAsync("SignInScene");
-            operation.allowSceneActivation = false;
             AuthHelper.SignOut(() => {
                 PopupFactory.ShowSimplePopup("Đã đăng xuất");
-                operation.allowSceneActivation = true;
+                LoadSceneHelper.LoadScene("SignInScene");
             });
         });
     }

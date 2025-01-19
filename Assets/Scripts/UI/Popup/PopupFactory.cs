@@ -12,10 +12,6 @@ public class PopupFactory : Singleton<PopupFactory> {
         SceneManager.sceneLoaded += DestroyAllPopup;
     }
 
-    private void OnDisable() {
-        SceneManager.sceneLoaded -= DestroyAllPopup;
-    }
-
     private static void DestroyAllPopup(Scene arg0, LoadSceneMode arg1) {
         foreach (RectTransform child in Instance.transform) Destroy(child.gameObject);
     }
