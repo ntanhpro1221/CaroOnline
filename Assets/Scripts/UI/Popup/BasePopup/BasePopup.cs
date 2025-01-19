@@ -12,6 +12,7 @@ public class BasePopup : MonoBehaviour {
     [SerializeField] private Transform _WindowRoot;
     [Space]
     [SerializeField] private Button _CloseBtn;
+    [SerializeField] private GameObject _CloseBtnObj;
     [Space]
     [Header("TITLE")]
     [SerializeField] private TextMeshProUGUI _TitleTxt;
@@ -24,10 +25,14 @@ public class BasePopup : MonoBehaviour {
     [SerializeField] private LayoutElement _ButtonElement;
     [SerializeField] private RectTransform _ButtonRoot;
 
+    private bool _Exitable = true;
+
     private void Start() {
         Appear();
-        _BackgroundBtn.onClick.AddListener(Disappear);
-        _CloseBtn.onClick.AddListener(Disappear);
+        if (_Exitable) {
+            _BackgroundBtn.onClick.AddListener(Disappear);
+            _CloseBtn.onClick.AddListener(Disappear);
+        }
     }
 
     protected virtual void Appear() {
@@ -56,6 +61,11 @@ public class BasePopup : MonoBehaviour {
         return this;
     }
     
+    public BasePopup WithTitleColor(Color color) {
+        _TitleTxt.color = color;
+        return this;
+    }
+
     public BasePopup WithContent(string content) {
         if (content == null) return this;
         _ContentElement.gameObject.SetActive(true);
@@ -64,10 +74,27 @@ public class BasePopup : MonoBehaviour {
         return this;
     }
 
+    public BasePopup WithContentColor(Color color) {
+        _ContentTxt.color = color;
+        return this;
+    }
+    
     public BasePopup WithButton(ButtonField.CreateOption option, bool close = false) {
         _ButtonElement.gameObject.SetActive(true);
         if (close) option.callback += Disappear;
         Instantiate(_SimpleBtn, _ButtonRoot).GetComponent<ButtonField>().Build(option);
+        return this;
+    }
+
+    public BasePopup WithExitable(bool exitable) {
+        _BackgroundBtn.onClick.RemoveAllListeners();
+        _CloseBtn.onClick.RemoveAllListeners();
+        if (exitable) {
+            _BackgroundBtn.onClick.AddListener(Disappear);
+            _CloseBtn.onClick.AddListener(Disappear);
+        }
+        _CloseBtnObj.SetActive(exitable);
+        _Exitable = exitable;
         return this;
     }
 }

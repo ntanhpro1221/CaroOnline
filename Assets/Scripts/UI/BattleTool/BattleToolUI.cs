@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Threading.Tasks;
+using UnityEngine;
 
 public class BattleToolUI : Singleton<BattleToolUI> {
     [SerializeField] private ButtonField _ExitBtn;
@@ -10,7 +11,21 @@ public class BattleToolUI : Singleton<BattleToolUI> {
             "Bạn sẽ bị coi như đã thua!",
             new() {
                 content = "Thoát",
-                callback = BattleConnector.Instance.Exit,
+                callback = async () => {
+                    print("Bắt đầu thoát");
+                    BattleConnector.Instance.Surrender();
+
+                    print("Đầu hàng xong");
+                    await Task.WhenAll(
+                        BattleConnector.Instance.WaitForOpponentHandleResult(),
+                        BattleConnector.Instance.WaitForMeHandleResult());
+
+                    print("đợi đối phương đầu hàng xong");
+
+                    BattleConnector.Instance.Exit();
+
+                    print("thoát xong");
+                },
                 backgroundColor = Color.red,
                 foregroundColor = Color.yellow,
             },

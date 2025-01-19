@@ -20,7 +20,7 @@ public class PopupFactory : Singleton<PopupFactory> {
     public static BasePopup ShowPopup_ManualBuild()
         => Instantiate(Instance._BasePopupObj, Instance.transform).GetComponent<BasePopup>();
 
-    public static void ShowPopup_YesNo(
+    public static BasePopup ShowPopup_YesNo(
         string title,
         string content,
         ButtonField.CreateOption noBtn,

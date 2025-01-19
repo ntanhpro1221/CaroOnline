@@ -1,7 +1,12 @@
+using System.Threading.Tasks;
 using Unity.Netcode;
 using UnityEngine;
 
 public class PlayerController : NetworkBehaviour {
+    public NetworkVariable<bool> isHandleResultDone = new(false,
+        NetworkVariableReadPermission.Everyone,
+        NetworkVariableWritePermission.Owner);
+
     public void ClientClicked(Vector3Int pos) {
         if (!MarkHelper.Instance.Mark_O(pos)) return;
 
@@ -21,21 +26,34 @@ public class PlayerController : NetworkBehaviour {
             NotifyHostIsWinner_ClientRpc();
         }
     }
+    
+    public void Surrender() {
+        if (IsHost) NotifyClientIsWinner_ClientRpc();
+        else NotifyHostIsWinner_ServerRpc();
+    }
 
     private void Start() {
-        if (!IsOwner) return; 
-        if (IsHost) SelectableBoard.Instance.OnCellSelected.AddListener(HostClicked);
-        else SelectableBoard.Instance.OnCellSelected.AddListener(ClientClicked);
+        if (!IsOwner) {
+            BattleConnector.Instance.SetOpponentController(this);
+        } else {
+            BattleConnector.Instance.SetMyController(this);
+            if (IsHost) SelectableBoard.Instance.OnCellSelected.AddListener(HostClicked);
+            else SelectableBoard.Instance.OnCellSelected.AddListener(ClientClicked);
+        }
     }
     
     [ClientRpc]
     public void NotifyHostIsWinner_ClientRpc() {
-        BattleConnector.Instance.HandleResult(IsHost); 
+        Task _ = BattleConnector.Instance.HandleResult(IsHost); 
     }
+
+    [ServerRpc]
+    public void NotifyHostIsWinner_ServerRpc()
+        => NotifyHostIsWinner_ClientRpc();
 
     [ClientRpc]
     public void NotifyClientIsWinner_ClientRpc() {
-        BattleConnector.Instance.HandleResult(!IsHost); 
+        Task _ = BattleConnector.Instance.HandleResult(!IsHost); 
     }
 
     [ServerRpc]

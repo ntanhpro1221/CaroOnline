@@ -8,6 +8,16 @@ public class BattleConnector : SceneSingleton<BattleConnector> {
 
     public string OpponentIdFirebase { get; private set; }
 
+    private PlayerController MyPlayerController;
+    private PlayerController OpponentController;
+
+    public void SetMyController(PlayerController controller)
+        => MyPlayerController = controller;
+
+    public void SetOpponentController(PlayerController controller) {
+        OpponentController = controller;
+    }
+
     private async void Start() {
         NetworkManager net = NetworkManager.Singleton;
         net.OnClientConnectedCallback += OnClientConnectedCallback;
@@ -32,14 +42,33 @@ public class BattleConnector : SceneSingleton<BattleConnector> {
     }
 
     public async Task WaitForDoneStart() {
-        while (!IsStarted) await Task.Delay(200);
+        while (!IsStarted) await Task.Delay(100);
+    }
+    
+    public async Task WaitForOpponentHandleResult() {
+        while (!OpponentController.isHandleResultDone.Value) await Task.Delay(100);
+    }
+    
+    public async Task WaitForMeHandleResult() {
+        while (!MyPlayerController.isHandleResultDone.Value) await Task.Delay(100);
     }
 
-    public void HandleResult(bool win) {
-        SoundHelper.Play(win ? SoundType.Victory : SoundType.Lose);
+    private async Task<int> HandlePoint(bool win) {
+        int delPoint = EloDeltaEvaluate.GetDeltaElo(
+            DataHelper.UserData.elo,
+            (await DataHelper.LoadUserDataAsync(OpponentIdFirebase)).elo,
+            win);
+
+        DataHelper.UserData.elo += delPoint;
+        await DataHelper.SaveCurrentUserDataAsync();
+
+        return delPoint;
+    }
+    
+    private void HandleResultPopup(bool win, int delPoint) {
         PopupFactory.ShowPopup_YesNo(
             win ? "BẠN ĐÃ THẮNG" : "BẠN ĐÃ THUA",
-            win ? "+500 điểm danh vọng!" : "-500 điểm danh vọng",
+            win ? $"+{delPoint} điểm danh vọng!" : $"{delPoint} điểm danh vọng",
             new() {
                 content = "Về sảnh chính",
                 callback = Exit,
@@ -51,9 +80,23 @@ public class BattleConnector : SceneSingleton<BattleConnector> {
                 callback = () => { print("Gạ gạ gạ"); },
                 backgroundColor = Color.green,
             }
-        );
+        ).WithContentColor(win ? Color.green : Color.red)
+        .WithExitable(false);
+    }
+
+    public async Task HandleResult(bool win) {
+        SoundHelper.Play(win ? SoundType.Victory : SoundType.Lose);
+
+        int delPoint = await HandlePoint(win);
+
+        HandleResultPopup(win, delPoint);
+
+        MyPlayerController.isHandleResultDone.Value = true;
     }
     
+    public void Surrender() 
+        => MyPlayerController.Surrender();
+
     public void Exit() {
         LobbyHelper.Instance.RelayHelper.Shutdown();
         LoadSceneHelper.LoadScene("LobbyScene");

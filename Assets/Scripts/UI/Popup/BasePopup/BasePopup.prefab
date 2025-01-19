@@ -1096,6 +1096,7 @@ MonoBehaviour:
   _BackgroundBtn: {fileID: 5391084514504152184}
   _WindowRoot: {fileID: 3588448400133581403}
   _CloseBtn: {fileID: 193264548446387836}
+  _CloseBtnObj: {fileID: 3733758074564636472}
   _TitleTxt: {fileID: 8986129747551869606}
   _ContentElement: {fileID: 4101374105922072201}
   _ContentTxt: {fileID: 7778915760065370162}
