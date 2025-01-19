@@ -6,6 +6,7 @@ public class PopupFactory : Singleton<PopupFactory> {
     [SerializeField] private GameObject _PopupWithInputFieldObj;
     [SerializeField] private GameObject _SimplePopupObj;
     [SerializeField] private GameObject _SettingWindowObj;
+    [SerializeField] private GameObject _ProfileOfOtherObj;
     
     protected override void Awake() {
         base.Awake();
@@ -42,4 +43,7 @@ public class PopupFactory : Singleton<PopupFactory> {
 
     public static void ShowSettingWindow()
         => Instantiate(Instance._SettingWindowObj, Instance.transform).GetComponent<SettingWindowUI>().Init();
+
+    public static void ShowProfileOfOther(UserData data)
+        => Instantiate(Instance._ProfileOfOtherObj, Instance.transform).GetComponent<ProfileOfOtherUI>().Init(data);
 }

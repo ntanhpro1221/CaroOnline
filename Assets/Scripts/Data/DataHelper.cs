@@ -9,6 +9,7 @@ using UnityEditor;
 public class DataHelper : Singleton<DataHelper> {
     public static DatabaseReference RootDB => FirebaseDatabase.DefaultInstance.RootReference;
     public static DatabaseReference CurrentUserDB => RootDB.Child(AuthHelper.User.UserId);
+    public static DatabaseReference UnityToFireBaseDB => RootDB.Child("0Unity To Firebase");
 
     [SerializeField] private BindableProperty<UserData> m_UserData;
     public static UserData UserData {
@@ -48,21 +49,33 @@ public class DataHelper : Singleton<DataHelper> {
         }
     };
 
-    public static async Task<UserData> LoadUserDataAsync(string id_firebase)
-        => await LoadObjectAsync<UserData>(RootDB.Child(id_firebase));
+    public static async Task<string> UnityToFirebase(string id_unity)
+        => await LoadObjectAsync<string>(UnityToFireBaseDB.Child(id_unity));
+
+    public static async Task<UserData> LoadUserDataAsync(string id_firebase) { 
+        UserData data = await LoadObjectAsync<UserData>(RootDB.Child(id_firebase));
+        data.followed_player_id_firebase ??= new();
+        return data;
+    }
 
     public static async Task LoadCurrentUserDataAsync() {
         UserData data = null;
+
         try {
             data = await LoadObjectAsync<UserData>(CurrentUserDB);
         } catch (UserNotHaveDataException) {
             try {
-                await SaveObjectAsync(CurrentUserDB, GenDefaultUserDataForCurrentUser());
+                await Task.WhenAll(
+                    SaveObjectAsync(CurrentUserDB, GenDefaultUserDataForCurrentUser()),
+                    SaveObjectAsync(UnityToFireBaseDB.Child(AuthHelper.id_unity), AuthHelper.User.UserId));
                 data = await LoadObjectAsync<UserData>(CurrentUserDB);
             } catch (Exception e) { Debug.LogException(e); }
         } catch (Exception e) { Debug.LogException(e); }
 
-        if (data != null) UserData = data;
+        if (data != null) {
+            data.followed_player_id_firebase ??= new();
+            UserData = data;
+        }
     }
 
     public static async Task SaveCurrentUserDataAsync()

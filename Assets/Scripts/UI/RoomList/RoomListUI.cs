@@ -32,16 +32,15 @@ public class RoomListUI : SceneSingleton<RoomListUI> {
         listRoom.RemoveAll(lobby => lobby.HostId == AuthenticationService.Instance.PlayerId);
 
         foreach (Lobby room in listRoom)
-            if (_ElementDict.ContainsKey(room.Id))
-                _ElementDict[room.Id].UpdateFull(room.Name);
-            else addRoom.Add(room);
+            if (!_ElementDict.ContainsKey(room.Id))
+                addRoom.Add(room);
 
         foreach (var (id, elementUI) in _ElementDict)
             if (!listRoom.Any(room => room.Id == id))
                 removeRoom.Add(id);
         
         foreach (string id in removeRoom) Remove(id);
-        foreach (Lobby room in addRoom) Add(room);
+        await Task.WhenAll(addRoom.Select(room => Add(room)));
     }
 
     private async Task StartSyncRoomList(CancellationToken token) {
@@ -50,9 +49,11 @@ public class RoomListUI : SceneSingleton<RoomListUI> {
             Task.Delay(LobbyHelper.RATE_QUERY));
     }
 
-    private void Add(Lobby room) {
+    private async Task Add(Lobby room) {
         RoomElementUI elementUI = Instantiate(_ElementObj, _ElementHolder).GetComponent<RoomElementUI>();
-        elementUI.BuildFull(room.Name, async () => await LobbyHelper.Instance.JoinLobbyById(room.Id));
+        elementUI
+            .WithProfile(await DataHelper.LoadUserDataAsync(await DataHelper.UnityToFirebase(room.HostId)))
+            .WithPlayCallback(async () => await LobbyHelper.Instance.JoinLobbyById(room.Id));
         _ElementDict.Add(room.Id, elementUI);
     }
 

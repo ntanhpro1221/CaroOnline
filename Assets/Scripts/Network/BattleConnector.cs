@@ -2,17 +2,20 @@
 using Unity.Netcode;
 using Unity.Services.Authentication;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
 public class BattleConnector : SceneSingleton<BattleConnector> {
     public bool IsStarted { get; private set; } = false;
 
-    private void Start() {
+    public string OpponentIdFirebase { get; private set; }
+
+    private async void Start() {
         NetworkManager net = NetworkManager.Singleton;
         net.OnClientConnectedCallback += OnClientConnectedCallback;
         if (AuthenticationService.Instance.PlayerId == LobbyHelper.Instance.JoinedLobby.Value.HostId) {
+            OpponentIdFirebase = await DataHelper.UnityToFirebase(LobbyHelper.Instance.GetClientUnityId());
             net.StartHost();
         } else {
+            OpponentIdFirebase = await DataHelper.UnityToFirebase(LobbyHelper.Instance.GetHostUnityId());
             net.StartClient();
         }
     }
@@ -39,20 +42,21 @@ public class BattleConnector : SceneSingleton<BattleConnector> {
             win ? "+500 điểm danh vọng!" : "-500 điểm danh vọng",
             new() {
                 content = "Về sảnh chính",
-                callback = () => {
-                    LobbyHelper.Instance.RelayHelper.Shutdown();
-                    LoadSceneHelper.LoadScene("LobbyScene");
-                },
+                callback = Exit,
                 backgroundColor = Color.red,
+                foregroundColor = Color.yellow,
             },
             new() {
                 content = "Làm lại",
-                callback = () => {
-                    print("Gạ gạ gạ");
-                },
+                callback = () => { print("Gạ gạ gạ"); },
                 backgroundColor = Color.green,
             }
         );
+    }
+    
+    public void Exit() {
+        LobbyHelper.Instance.RelayHelper.Shutdown();
+        LoadSceneHelper.LoadScene("LobbyScene");
     }
 
     private void OnDisable() {

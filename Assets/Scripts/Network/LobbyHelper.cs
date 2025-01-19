@@ -9,6 +9,8 @@ using System.Threading;
 using UnityEngine.SceneManagement;
 using Unity.Netcode;
 using System;
+using System.Linq;
+using Unity.Services.Authentication.PlayerAccounts;
 
 public class LobbyHelper : Singleton<LobbyHelper> {
     #region DATA QUERY RATE
@@ -190,9 +192,14 @@ public class LobbyHelper : Singleton<LobbyHelper> {
             Debug.LogError(e.Message);
         }
     }
+    
+    public string GetHostUnityId() 
+        => JoinedLobby.Value.HostId;
+
+    public string GetClientUnityId()
+        => JoinedLobby.Value.Players.First(player => player.Id != JoinedLobby.Value.HostId).Id;
 
     public void JoinGame() {
-        JoinedLobby.StopSync();
         ToBattleScene();
     }
 

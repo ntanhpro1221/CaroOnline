@@ -118,3 +118,4 @@ MonoBehaviour:
   _PopupWithInputFieldObj: {fileID: 4599057211823958476, guid: 0ccd8adf370b0d34ca679f84d49b6043, type: 3}
   _SimplePopupObj: {fileID: 6561843313045738426, guid: b93b1bd33918cfd43af7b19b066f3e27, type: 3}
   _SettingWindowObj: {fileID: 6577835103987641286, guid: c3c98353b9359d542a5cd54ba25d8088, type: 3}
+  _ProfileOfOtherObj: {fileID: 6577835103987641286, guid: 18974b694337ad24b8c1be56fa1953c9, type: 3}
