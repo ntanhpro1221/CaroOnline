@@ -13,58 +13,105 @@ public class SelectableBoard : SceneSingleton<SelectableBoard> {
     private Tilemap _Map;
     private Camera _Cam;
     private readonly TouchHelper _Touches = new();
-    private Vector3Int? _CurCell;
-    private Vector3 _PressStartPoint;
 
     protected override void Awake() {
         base.Awake();
         _Map = GetComponent<Tilemap>();
         _Cam = Camera.main;
     }
+    
+    private Vector3 _PressStartPoint;
+    private bool _IsConfirmSelect = false;
+    private Vector3Int? _HoveredCell;
+    private Vector3Int? _PressedCell;
+    private Vector3Int? _SelectedCell;
 
-    private void LateUpdate() {
-        if (_CurCell != null) {
-            _Map.SetColor(_CurCell.Value, _NormalColor);
-            _CurCell = null;
+    private void ResetColorOfAllCell() {
+        void ResetColorCell(Vector3Int? cell) { 
+            if (cell != null) 
+                _Map.SetColor(cell.Value, _NormalColor); 
+        }
+        ResetColorCell(_HoveredCell);
+        ResetColorCell(_PressedCell);
+        ResetColorCell(_SelectedCell);
+    }
+
+    private void ColorHoveredCell() {
+        _HoveredCell = null;
+
+        if (LeftMouse != null) 
+            _HoveredCell = ScreenToCell(MousePos);
+
+        if (_HoveredCell != null) 
+            _Map.SetColor(_HoveredCell.Value, _HighlightedColor);
+    }
+    
+    private void ColorSelectedCell() {
+        if (_SelectedCell != null)
+            _Map.SetColor(_SelectedCell.Value, _HighlightedColor);
+    }
+
+    private void ColorPressedCell() {
+        _PressedCell = null;
+
+        if (LeftMouse != null &&
+            LeftMouse.isPressed)
+            _PressedCell = ScreenToCell(MousePos);
+        else if (Touchscreen.current != null &&
+            _Touches[0].Phase is TouchHelper.PHASE_MOVED or TouchHelper.PHASE_STATIONARY)
+            _PressedCell = ScreenToCell(_Touches[0].Position);
+
+        if (_PressedCell != null) 
+            _Map.SetColor(_PressedCell.Value, _PressedColor);
+    }
+
+    private void HandleTouchAction() {
+        if (LeftMouse != null) {
+            if (LeftMouse.wasPressedThisFrame) 
+                HavePressedThisFrame(MousePos);
+            if (LeftMouse.wasReleasedThisFrame)
+                HaveReleasedThisFrame(MousePos);
+        } else if (Touchscreen.current != null) {
+            if (_Touches[0].Phase == TouchHelper.PHASE_BEGAN)
+                HavePressedThisFrame(_Touches[0].Position);
+            if (_Touches[0].Phase == TouchHelper.PHASE_ENDED)
+                HaveReleasedThisFrame(_Touches[0].Position);
+        }
+
+        void HavePressedThisFrame(Vector3 screenPos) {
+            _PressStartPoint = screenPos;
+            _IsConfirmSelect = 
+                _SelectedCell != null &&
+                _SelectedCell.Value == ScreenToCell(screenPos);
+            _SelectedCell = null;
         }
         
+        void HaveReleasedThisFrame(Vector3 screenPos) {
+            if (Vector2.Distance(screenPos, _PressStartPoint) <= TouchHelper.TOUCH_DISTANCE) {
+                Vector3Int releasedCell = ScreenToCell(screenPos);
+                if (_IsConfirmSelect) OnCellSelected.Invoke(releasedCell);
+                else _SelectedCell = releasedCell;
+            }
+            _IsConfirmSelect = false;
+        }
+    }
+
+    private void LateUpdate() {
         if (!Application.isFocused) return;
 
-        if (LeftMouse != null) {
-            _CurCell = ScreenToCell(MousePos);
+        // update touch phase (for android)
+        _Touches.UpdateToNewestState();
 
-            if (LeftMouse.wasPressedThisFrame)
-                _PressStartPoint = MousePos;
+        // clear color of current cell
+        ResetColorOfAllCell();
 
-            _Map.SetColor(_CurCell.Value, LeftMouse.isPressed
-                ? _PressedColor
-                : _HighlightedColor);
+        // update cell
+        HandleTouchAction();
 
-            if (LeftMouse.wasReleasedThisFrame) {
-                _Map.SetColor(_CurCell.Value, _HighlightedColor);
-
-                if (Vector3.Distance(_PressStartPoint, MousePos) <= TouchHelper.TOUCH_DISTANCE)
-                    OnCellSelected.Invoke(_CurCell.Value);
-            }
-        } else if (Touchscreen.current != null) {
-            _Touches.UpdateToNewestState();
-
-            _CurCell = ScreenToCell(_Touches[0].Position);
-
-            if (_Touches[0].Phase == TouchHelper.PHASE_BEGAN)
-                _PressStartPoint = _Touches[0].Position;
-            
-            if (_Touches[0].Phase is TouchHelper.PHASE_MOVED or TouchHelper.PHASE_STATIONARY)
-                _Map.SetColor(_CurCell.Value, _PressedColor);
-
-            if (_Touches[0].Phase == TouchHelper.PHASE_ENDED) {
-                _Map.SetColor(_CurCell.Value, _NormalColor);
-
-                if (Vector3.Distance(_PressStartPoint, _Touches[0].Position) <= TouchHelper.TOUCH_DISTANCE) {
-                    OnCellSelected.Invoke(_CurCell.Value);
-                }
-            }
-        }
+        // color new cell
+        ColorHoveredCell();
+        ColorSelectedCell();
+        ColorPressedCell();
     }
     
     private Vector2 MousePos

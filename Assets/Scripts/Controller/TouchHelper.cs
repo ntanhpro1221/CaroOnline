@@ -5,7 +5,7 @@ using UnityEngine.InputSystem;
 /// </summary>
 public class TouchHelper {
     public const int MAX_TOUCHES = 10;
-    public const float TOUCH_DISTANCE = 4;
+    public const float TOUCH_DISTANCE = 10;
     #region PHASE SHORTCUT
     public const UnityEngine.InputSystem.TouchPhase PHASE_BEGAN = UnityEngine.InputSystem.TouchPhase.Began;
     public const UnityEngine.InputSystem.TouchPhase PHASE_ENDED = UnityEngine.InputSystem.TouchPhase.Ended;
