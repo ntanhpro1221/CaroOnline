@@ -19,7 +19,8 @@ public class RoomListUI : SceneSingleton<RoomListUI> {
 
         _ElementHolder = GetComponent<ScrollRect>().content;
 
-        _SyncRoomTask = new(StartSyncRoomList);
+        if (ConnectionChecker.CachedInternetCheckResult)
+            _SyncRoomTask = new(StartSyncRoomList);
     }
      
     public async Task RefreshList() {
@@ -63,6 +64,6 @@ public class RoomListUI : SceneSingleton<RoomListUI> {
     }
 
     private void OnDisable() {
-        _SyncRoomTask.Cancel();
+        _SyncRoomTask?.Cancel();
     }
 }
