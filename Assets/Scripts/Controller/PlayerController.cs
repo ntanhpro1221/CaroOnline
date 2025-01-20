@@ -1,13 +1,15 @@
+using System;
 using System.Threading.Tasks;
 using Unity.Netcode;
 using UnityEngine;
 
 public class PlayerController : NetworkBehaviour {
-    public NetworkVariable<bool> isHandleResultDone = new(false,
+    [NonSerialized] public NetworkVariable<bool> isHandleResultDone = new(false,
         NetworkVariableReadPermission.Everyone,
         NetworkVariableWritePermission.Owner);
 
     public void ClientClicked(Vector3Int pos) {
+        Debug.Log("Client click");
         if (!MarkHelper.Instance.Mark_O(pos)) return;
 
         Mark_O_ServerRpc(pos);
@@ -18,6 +20,7 @@ public class PlayerController : NetworkBehaviour {
     }
 
     public void HostClicked(Vector3Int pos) {
+        Debug.Log("Host click");
         if (!MarkHelper.Instance.Mark_X(pos)) return;
 
         Mark_X_ClientRpc(pos, true);
@@ -32,7 +35,8 @@ public class PlayerController : NetworkBehaviour {
         else NotifyHostIsWinner_ServerRpc();
     }
 
-    private void Start() {
+    private async void Start() {
+        await BattleConnector.Instance.WaitForDoneStart();
         if (!IsOwner) {
             BattleConnector.Instance.SetOpponentController(this);
         } else {

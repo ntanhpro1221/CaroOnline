@@ -17,6 +17,10 @@ public class DataHelper : Singleton<DataHelper> {
         private set => Instance.m_UserData.Value = value;
     }
 
+    [SerializeField] private SceneBoostData m_SceneBoostData = new();
+    public static SceneBoostData SceneBoostData
+        => Instance.m_SceneBoostData;
+
     private static async Task<T> LoadObjectAsync<T>(DatabaseReference dataRef) {
         print($"Start load {typeof(T).Name} ({Time.time})");
         string json = (await dataRef.GetValueAsync()).GetRawJsonValue() 
@@ -91,9 +95,11 @@ public class DataHelper : Singleton<DataHelper> {
     public class DataManagerEditor : Editor {
         private SerializedProperty m_UserData;
         private bool m_UserData_Fold = false;
+        private SerializedProperty m_SceneBoostData;
 
         private void OnEnable() {
             m_UserData = serializedObject.FindProperty(nameof(DataHelper.m_UserData));
+            m_SceneBoostData = serializedObject.FindProperty(nameof(DataHelper.m_SceneBoostData));
         }
 
         public override void OnInspectorGUI() {
@@ -104,6 +110,7 @@ public class DataHelper : Singleton<DataHelper> {
                 m_UserData,
                 new("Load", () => _ = DataHelper.LoadCurrentUserDataAsync()),
                 new("Save", () => _ = DataHelper.SaveCurrentUserDataAsync()));
+            EditorGUILayout.PropertyField(m_SceneBoostData, true);
 
             EditorGUI.EndChangeCheck();
             serializedObject.ApplyModifiedProperties();

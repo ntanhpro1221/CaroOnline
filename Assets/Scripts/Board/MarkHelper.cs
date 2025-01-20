@@ -1,11 +1,11 @@
 ﻿using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
 [RequireComponent(typeof(Tilemap))]
 public class MarkHelper : SceneSingleton<MarkHelper> {
     public bool IsXTurn { get; private set; } = true;
+    public List<(Vector3Int, MarkType)> MoveHistory { get; private set; } = new();
 
     [SerializeField] private TileBase _Mark_O;
     [SerializeField] private TileBase _Mark_X;
@@ -33,6 +33,7 @@ public class MarkHelper : SceneSingleton<MarkHelper> {
             return false;
         }
 
+        MoveHistory.Add((pos, MarkType.O));
         SoundHelper.Play(SoundType.MakeMove);
         _Map.SetTile(pos, _Mark_O);
         IsXTurn = !IsXTurn;
@@ -55,6 +56,7 @@ public class MarkHelper : SceneSingleton<MarkHelper> {
             return false;
         }
 
+        MoveHistory.Add((pos, MarkType.X));
         SoundHelper.Play(SoundType.MakeMove);
         _Map.SetTile(pos, _Mark_X);
         IsXTurn = !IsXTurn;

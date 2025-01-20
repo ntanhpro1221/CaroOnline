@@ -4,35 +4,50 @@ using UnityEngine;
 public class BattleToolUI : Singleton<BattleToolUI> {
     [SerializeField] private ButtonField _ExitBtn;
     [SerializeField] private ButtonField _ProfileOfOtherBtn;
-    
+
+    private bool _IsPlayerVSPlayer
+        => DataHelper.SceneBoostData.battle.battleMode == BattleMode.Player_Player;
+    private bool _IsPlayerVSBot
+        => DataHelper.SceneBoostData.battle.battleMode == BattleMode.Player_Bot;
+
     private void OnClickExit() {
-        PopupFactory.ShowPopup_YesNo(
-            "Bạn có chắc muốn thoát trận?",
-            "Bạn sẽ bị coi như đã thua!",
-            new() {
-                content = "Thoát",
-                callback = async () => {
-                    print("Bắt đầu thoát");
-                    BattleConnector.Instance.Surrender();
+        if (_IsPlayerVSPlayer) {
+            PopupFactory.ShowPopup_YesNo(
+                "Bạn có chắc muốn thoát trận?",
+                "Bạn sẽ bị coi như đã thua!",
+                new() {
+                    content = "Thoát",
+                    callback = async () => {
+                        BattleConnector.Instance.Surrender();
 
-                    print("Đầu hàng xong");
-                    await Task.WhenAll(
-                        BattleConnector.Instance.WaitForOpponentHandleResult(),
-                        BattleConnector.Instance.WaitForMeHandleResult());
+                        await Task.WhenAll(
+                            BattleConnector.Instance.WaitForOpponentHandleResult(),
+                            BattleConnector.Instance.WaitForMeHandleResult());
 
-                    print("đợi đối phương đầu hàng xong");
-
-                    BattleConnector.Instance.Exit();
-
-                    print("thoát xong");
+                        BattleConnector.Instance.Exit();
+                    },
+                    backgroundColor = Color.red,
+                    foregroundColor = Color.yellow,
                 },
-                backgroundColor = Color.red,
-                foregroundColor = Color.yellow,
-            },
-            new() {
-                content = "Thôi chơi tiếp",
-                backgroundColor = Color.green, 
-            });
+                new() {
+                    content = "Thôi chơi tiếp",
+                    backgroundColor = Color.green,
+                });
+        } else if (_IsPlayerVSBot) {
+            PopupFactory.ShowPopup_YesNo(
+                "Bạn có chắc muốn thoát trận?",
+                null,
+                new() {
+                    content = "Thoát",
+                    callback = BattleConnector.Instance.Exit,
+                    backgroundColor = Color.red,
+                    foregroundColor = Color.yellow,
+                },
+                new() {
+                    content = "Thôi chơi tiếp",
+                    backgroundColor = Color.green,
+                });
+        }
     }
 
     private async void OnClickProfileOfOther() {
@@ -44,7 +59,12 @@ public class BattleToolUI : Singleton<BattleToolUI> {
     }
 
     private void Start() {
-        _ExitBtn.WithCallback(OnClickExit); 
-        _ProfileOfOtherBtn.WithCallback(OnClickProfileOfOther);
+        _ExitBtn.WithCallback(OnClickExit);
+        if (_IsPlayerVSPlayer) {
+            _ProfileOfOtherBtn.gameObject.SetActive(true);
+            _ProfileOfOtherBtn.WithCallback(OnClickProfileOfOther);
+        } else if (_IsPlayerVSBot) {
+            _ProfileOfOtherBtn.gameObject.SetActive(false);
+        }
     }
 }

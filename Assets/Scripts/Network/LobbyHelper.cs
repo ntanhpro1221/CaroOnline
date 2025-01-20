@@ -204,6 +204,7 @@ public class LobbyHelper : Singleton<LobbyHelper> {
     }
 
     private void ToBattleScene() {
+        DataHelper.SceneBoostData.battle.battleMode = BattleMode.Player_Player;
         LoadSceneHelper.LoadScene("BattleScene");
     }
 

@@ -67,9 +67,9 @@ public class BasePopup : MonoBehaviour {
     }
 
     public BasePopup WithContent(string content) {
+        _ContentElement.gameObject.SetActive(content != null);
+        _ContentTxt.gameObject.SetActive(content != null);
         if (content == null) return this;
-        _ContentElement.gameObject.SetActive(true);
-        _ContentTxt.gameObject.SetActive(true);
         _ContentTxt.text = content;
         return this;
     }
