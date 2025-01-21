@@ -5,6 +5,7 @@ using UnityEngine.Tilemaps;
 [RequireComponent(typeof(Tilemap))]
 [DefaultExecutionOrder(-50)]
 public class MarkHelper : SceneSingleton<MarkHelper> {
+    private bool _BeginIsXTurn = true;
     public bool IsXTurn { get; private set; } = true;
     public List<(Vector3Int, MarkType)> MoveHistory { get; private set; } = new();
 
@@ -60,6 +61,7 @@ public class MarkHelper : SceneSingleton<MarkHelper> {
     }
     
     public void ClearAllMark() {
+        IsXTurn = _BeginIsXTurn = !_BeginIsXTurn;
         foreach (var (pos, _) in MoveHistory) Unmark(pos);
         MoveHistory.Clear();
     }
