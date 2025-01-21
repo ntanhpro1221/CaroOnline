@@ -44,8 +44,8 @@ public class PopupFactory : Singleton<PopupFactory> {
     public static void ShowSettingWindow()
         => Instantiate(Instance._SettingWindowObj, Instance.transform).GetComponent<SettingWindowUI>().Init();
 
-    public static void ShowProfileOfOther(UserData data)
-        => Instantiate(Instance._ProfileOfOtherObj, Instance.transform).GetComponent<ProfileOfOtherUI>().Init(data);
+    public static void ShowProfileOfOther(UserData data, int? elo = null)
+        => Instantiate(Instance._ProfileOfOtherObj, Instance.transform).GetComponent<ProfileOfOtherUI>().Init(data, elo);
 
     public static void ShowPopup_PlayingOfflineMode()
         => ShowSimplePopup("Bạn đang chơi ở chế độ offline");

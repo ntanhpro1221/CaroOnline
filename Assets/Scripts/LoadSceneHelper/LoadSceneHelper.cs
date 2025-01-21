@@ -1,4 +1,5 @@
 ﻿using DG.Tweening;
+using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.SceneManagement;
@@ -11,6 +12,7 @@ public class LoadSceneHelper : Singleton<LoadSceneHelper> {
     [SerializeField] private Image _BlankImg;
     [SerializeField] private float _Duration = 0.2f;
     private static LoadStyle _CurLoadStyle;
+    private static Task _DelayApear;
 
     protected override void Awake() {
         base.Awake();
@@ -26,7 +28,12 @@ public class LoadSceneHelper : Singleton<LoadSceneHelper> {
         return transform;
     }
 
-    private void OnSceneLoaded(Scene scene, LoadSceneMode mode) {
+    private async void OnSceneLoaded(Scene scene, LoadSceneMode mode) {
+        if (_DelayApear != null) {
+            if (_DelayApear.Status is TaskStatus.Created) _DelayApear.Start();
+            await _DelayApear;
+        }
+
         switch (_CurLoadStyle) {
             case LoadStyle.Fade:
                 Instance._BlankImg
@@ -39,12 +46,17 @@ public class LoadSceneHelper : Singleton<LoadSceneHelper> {
                     .OnComplete(() => Instance._ImageObj.gameObject.SetActive(false));
                 break;
         }
+
+        _DelayApear = null;
     }
-    
-    public static void LoadScene(string sceneName, LoadStyle loadStyle = LoadStyle.Fade, Sprite imageToShow = null) {
+
+    public static void LoadScene(string sceneName, LoadStyle loadStyle = LoadStyle.Fade, Sprite imageToShow = null, Task delayDisapear = null, Task delayApear = null) {
+        // CUSTOM WAIT
+        _DelayApear = delayApear;
+
         // SET LOAD STYLE
         _CurLoadStyle = loadStyle;
-        
+
         // START LOAD SCENE ASYNC BUT DONT ALLOW CHANGE SCENE
         AsyncOperation loadTask = SceneManager.LoadSceneAsync(sceneName);
         loadTask.allowSceneActivation = false;
@@ -64,9 +76,15 @@ public class LoadSceneHelper : Singleton<LoadSceneHelper> {
                 if (imageToShow != null) Instance._ImageObj.GetComponent<Image>().sprite = imageToShow;
                 break;
         }
-        
+
         // ALLOW CHANGE SCENE AFTER DONE
-        sequence.AppendCallback(() => loadTask.allowSceneActivation = true);
+        sequence.AppendCallback(async () => {
+            if (delayDisapear != null) {
+                if (delayDisapear.Status is TaskStatus.Created) delayDisapear.Start();
+                await delayDisapear;
+            }
+            loadTask.allowSceneActivation = true;
+        });
     }
 
     public enum LoadStyle {

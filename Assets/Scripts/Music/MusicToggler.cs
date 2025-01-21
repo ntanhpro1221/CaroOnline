@@ -15,7 +15,10 @@ public class MusicToggler : MonoBehaviour {
     }
 
     private void OnUserDataChanged(UserData userData) {
-        if (userData.setting.music) MusicSource.UnPause();
-        else MusicSource.Pause();
+        if (userData.setting.music) {
+            if (MusicSource.time > 0)
+                MusicSource.UnPause();
+            else MusicSource.Play();
+        } else MusicSource.Pause();
     }
 }

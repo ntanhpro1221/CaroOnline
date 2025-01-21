@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
@@ -60,9 +61,9 @@ public class MarkHelper : SceneSingleton<MarkHelper> {
         return true;
     }
     
-    public void ClearAllMark() {
+    public void ResetForNewGame() {
         IsXTurn = _BeginIsXTurn = !_BeginIsXTurn;
-        foreach (var (pos, _) in MoveHistory) Unmark(pos);
+        _Map.ClearAllTiles();
         MoveHistory.Clear();
     }
 
@@ -72,8 +73,17 @@ public class MarkHelper : SceneSingleton<MarkHelper> {
     public void HasMark(Vector3Int pos) 
         => _Map.HasTile(pos);
     
-    public bool IsThisMoveMakeWin(Vector3Int pos) {
-        bool win = false;
+    public bool IsThisMoveMakeWin(Vector3Int pos, bool colorWinLine = true) {
+        if (!_Map.HasTile(pos)) return false;
+        if (LonggestConsecutiveMatch_FromThisMark(pos).Count >= 5) {
+            WinLineColor.Instance.ColorWinLine(pos, _Map.GetTile(pos) == _Mark_X ? MarkType.X : MarkType.O);
+            return true;
+        }
+        return false;
+    }
+
+    public List<Vector3Int> LonggestConsecutiveMatch_FromThisMark(Vector3Int pos) {
+        List<Vector3Int> longgest = new();
 
         Vector3Int[] dels = new Vector3Int[] {
             new(0, 1),
@@ -83,29 +93,30 @@ public class MarkHelper : SceneSingleton<MarkHelper> {
         TileBase pattern = _Map.GetTile(pos);
 
         foreach (var del in dels) {
-            List<TileBase> tileList = new();
+            List<(TileBase, Vector3Int)> tileList = new();
             Vector3Int itePos = pos - 4 * del;
             for (int i = 4 * 2 + 1; i > 0; --i) {
-                tileList.Add(_Map.GetTile(itePos));
+                tileList.Add((_Map.GetTile(itePos), itePos));
                 itePos += del;
             }
-            if (LonggestConsecutiveMatch(pattern, tileList) >= 5) {
-                win = true;
-            }
+            var curList = LonggestConsecutiveMatch(pattern, tileList);
+            if (curList.Count > longgest.Count)
+                longgest = new(curList);
         }
 
-        return win;
+        return longgest;
     }
 
-    private int LonggestConsecutiveMatch(TileBase pattern, List<TileBase> tileList) {
-        int longgest = 0;
-        int curLength = 0;
+    private List<Vector3Int> LonggestConsecutiveMatch(TileBase pattern, List<(TileBase, Vector3Int)> tileList) {
+        List<Vector3Int> longgest = new();
+        List<Vector3Int> curSeq = new();
 
-        foreach (TileBase tile in tileList) {
-            if (tile == pattern) curLength++;
-            else curLength = 0;
+        foreach (var (tile, pos) in tileList) {
+            if (tile == pattern) curSeq.Add(pos);
+            else curSeq.Clear();
 
-            longgest = Mathf.Max(longgest, curLength);
+            if (curSeq.Count > longgest.Count)
+                longgest = new(curSeq);
         }
 
         return longgest;

@@ -3,43 +3,58 @@ using System.Threading.Tasks;
 using Unity.Netcode;
 using Unity.Services.Authentication;
 using UnityEngine;
+using UnityEngine.InputSystem.XR;
 
 public class BattleConnector : SceneSingleton<BattleConnector> {
     private bool _IsPlayerVSPlayer 
         => DataHelper.SceneBoostData.battle.battleMode == BattleMode.Player_Player;
     private bool _IsPlayerVSBot
         => DataHelper.SceneBoostData.battle.battleMode == BattleMode.Player_Bot;
+    private bool _IsQuited = false;
 
     private async void Start() {
         if (_IsPlayerVSPlayer) {
+            // load opponent infomation before start connect
+            OpponentIdFirebase = 
+                AuthenticationService.Instance.PlayerId == LobbyHelper.Instance.JoinedLobby.Value.HostId
+                ? await DataHelper.UnityToFirebase(LobbyHelper.Instance.GetClientUnityId())
+                : await DataHelper.UnityToFirebase(LobbyHelper.Instance.GetHostUnityId());
+            OpponentElo = (await DataHelper.LoadUserDataAsync(OpponentIdFirebase)).elo;
+            
+            // start connect
             NetworkManager net = NetworkManager.Singleton;
+            net.OnClientDisconnectCallback += OnClientDisconnectedCallback;
             if (AuthenticationService.Instance.PlayerId == LobbyHelper.Instance.JoinedLobby.Value.HostId) {
-                OpponentIdFirebase = await DataHelper.UnityToFirebase(LobbyHelper.Instance.GetClientUnityId());
                 net.OnClientConnectedCallback += OnClientConnectedCallback;
                 net.StartHost();
             } else {
-                OpponentIdFirebase = await DataHelper.UnityToFirebase(LobbyHelper.Instance.GetHostUnityId());
                 net.StartClient();
             }
+            LobbyHelper.Instance.JoinedLobby.StopSync();
         } else if (_IsPlayerVSBot) {
             Instantiate(_PlayerBotController);
         }
     }
 
     private void OnDisable() {
-        if (_IsPlayerVSPlayer && AuthenticationService.Instance.PlayerId == LobbyHelper.Instance.JoinedLobby.Value.HostId) {
+        _IsQuited = true;
+        if (_IsPlayerVSPlayer) { 
+            NetworkManager.Singleton.OnClientDisconnectCallback -= OnClientDisconnectedCallback;
             NetworkManager.Singleton.OnClientConnectedCallback -= OnClientConnectedCallback;
+            LobbyHelper.Instance.RelayHelper.Shutdown();
         }
     }
+   
+    public async Task HandleResult(bool win, bool showPlayAgain = true, string customTitle = null) {
+        IsPlaying = false;
 
-    public async Task HandleResult(bool win, bool showPlayAgain = true) {
         SoundHelper.Play(win ? SoundType.Victory : SoundType.Lose);
 
         if (_IsPlayerVSPlayer) {
             IWantPlayAgain = OpponentWantPlayAgain = false;
             int delPoint = await HandlePoint(win);
 
-            HandleResultPopupPvP(win, delPoint, showPlayAgain);
+            HandleResultPopupPvP(win, delPoint, showPlayAgain, customTitle);
 
             MyPlayerController.isHandleResultDone.Value = true;
         } else if (_IsPlayerVSBot) {
@@ -48,9 +63,8 @@ public class BattleConnector : SceneSingleton<BattleConnector> {
     }
     
     public void Exit() {
-        if (_IsPlayerVSPlayer) {
+        if (_IsPlayerVSPlayer) 
             LobbyHelper.Instance.RelayHelper.Shutdown();
-        }
         LoadSceneHelper.LoadScene("LobbyScene");
     }
 
@@ -70,7 +84,8 @@ public class BattleConnector : SceneSingleton<BattleConnector> {
             new() {
                 content = "Làm lại",
                 callback = async () => {
-                    MarkHelper.Instance.ClearAllMark();
+                    MarkHelper.Instance.ResetForNewGame();
+                    WinLineColor.Instance.ClearColor();
                     await PlayerBotController.Instance.BeginTurn();
                 },
                 backgroundColor = Color.green,
@@ -83,14 +98,24 @@ public class BattleConnector : SceneSingleton<BattleConnector> {
     public bool IsStarted { get; set; } = false;
 
     public string OpponentIdFirebase { get; private set; }
-
+    
     public bool IWantPlayAgain = false;
     public bool OpponentWantPlayAgain = false;
 
+    private bool IsPlaying = false;
+    private int BetElo;
+    public int OpponentElo { get; private set; }
     private BasePopup _ResultPopup;
 
     private PlayerController MyPlayerController;
     private PlayerController OpponentController;
+    
+    public async Task MakeBetEloBeforeStart() {
+        IsPlaying = true;
+        BetElo = -EloDeltaEvaluate.GetDeltaElo(DataHelper.UserData.elo, OpponentElo, false);
+        DataHelper.UserData.elo -= BetElo;
+        await DataHelper.SaveCurrentUserDataAsync();
+    }
 
     public void SetMyController(PlayerController controller)
         => MyPlayerController = controller;
@@ -107,6 +132,13 @@ public class BattleConnector : SceneSingleton<BattleConnector> {
         }
     }
 
+    private async void OnClientDisconnectedCallback(ulong id) {
+        if (!IsPlaying) return;
+        await Task.Delay(5000);
+        if (_IsQuited) return;
+        await HandleResult(true, false, "Bạn đã thắng do đối thủ của bạn đã thoát");
+    }
+
     public async Task WaitForDoneStart() {
         while (!IsStarted) await Task.Delay(100);
     }
@@ -120,12 +152,24 @@ public class BattleConnector : SceneSingleton<BattleConnector> {
     }
 
     private async Task<int> HandlePoint(bool win) {
+        // restore may elo
+        DataHelper.UserData.elo += BetElo;
+
+        // Calc for opponent
+        int delPoint_Oppo = EloDeltaEvaluate.GetDeltaElo(
+            OpponentElo,
+            DataHelper.UserData.elo,
+            !win);
+        
+        // Calc for me
         int delPoint = EloDeltaEvaluate.GetDeltaElo(
             DataHelper.UserData.elo,
-            (await DataHelper.LoadUserDataAsync(OpponentIdFirebase)).elo,
+            OpponentElo,
             win);
-
+        
         DataHelper.UserData.elo += delPoint;
+        OpponentElo += delPoint_Oppo;
+
         await DataHelper.SaveCurrentUserDataAsync();
 
         return delPoint;
@@ -134,11 +178,12 @@ public class BattleConnector : SceneSingleton<BattleConnector> {
     public void PlayAgain() {
         if (!IWantPlayAgain) return;
         IWantPlayAgain = OpponentWantPlayAgain = false;
-        MarkHelper.Instance.ClearAllMark();
+        WinLineColor.Instance.ClearColor();
+        MarkHelper.Instance.ResetForNewGame();
         _ResultPopup.Disappear();
     }
 
-    private void HandleResultPopupPvP(bool win, int delPoint, bool showPlayAgain = true) {
+    private void HandleResultPopupPvP(bool win, int delPoint, bool showPlayAgain = true, string customTitle = null) {
         ButtonField.CreateOption exitBtn = new() {
             content = "Về sảnh chính",
             callback = Exit,
@@ -147,7 +192,7 @@ public class BattleConnector : SceneSingleton<BattleConnector> {
         };
         _ResultPopup = PopupFactory.ShowPopup_ManualBuild();
         _ResultPopup
-            .WithTitle(win ? "BẠN ĐÃ THẮNG" : "BẠN ĐÃ THUA")
+            .WithTitle(customTitle ?? (win ? "BẠN ĐÃ THẮNG" : "BẠN ĐÃ THUA"))
             .WithContent(win ? $"+{delPoint} elo!" : $"{delPoint} elo!")
             .WithButton(exitBtn)
             .WithContentColor(win ? Color.green : Color.red)

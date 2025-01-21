@@ -55,7 +55,7 @@ public class BattleToolUI : SceneSingleton<BattleToolUI> {
 
         UserData data = await DataHelper.LoadUserDataAsync(BattleConnector.Instance.OpponentIdFirebase);
 
-        PopupFactory.ShowProfileOfOther(data);
+        PopupFactory.ShowProfileOfOther(data, BattleConnector.Instance.OpponentElo);
     }
 
     private void Start() {

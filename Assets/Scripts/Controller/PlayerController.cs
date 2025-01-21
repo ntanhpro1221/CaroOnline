@@ -1,4 +1,5 @@
-﻿using System;
+﻿using JetBrains.Annotations;
+using System;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Unity.Netcode;
@@ -10,7 +11,6 @@ public class PlayerController : NetworkBehaviour {
         NetworkVariableWritePermission.Owner);
 
     public void ClientClicked(Vector3Int pos) {
-        Debug.Log("Client click");
         if (!MarkHelper.Instance.Mark_O(pos)) return;
 
         Mark_O_ServerRpc(pos);
@@ -21,7 +21,6 @@ public class PlayerController : NetworkBehaviour {
     }
 
     public void HostClicked(Vector3Int pos) {
-        Debug.Log("Host click");
         if (!MarkHelper.Instance.Mark_X(pos)) return;
 
         Mark_X_ClientRpc(pos, true);
@@ -37,28 +36,21 @@ public class PlayerController : NetworkBehaviour {
     }
 
     private async void Start() {
-        print((IsHost == IsOwner ? "Host " : "Client ") + "bắt đầu vào start");
-        
         if (!IsOwner) BattleConnector.Instance.SetOpponentController(this);
         else BattleConnector.Instance.SetMyController(this);
 
-        print((IsHost == IsOwner ? "Host " : "Client ") + "đăng ký controller xong");
-
         await BattleConnector.Instance.WaitForDoneStart();
-
-        print((IsHost == IsOwner ? "Host " : "Client ") + "đợi bắt đầu xong");
 
         if (IsOwner) {
             if (IsHost) SelectableBoard.Instance.OnCellSelected.AddListener(HostClicked);
             else SelectableBoard.Instance.OnCellSelected.AddListener(ClientClicked);
         }
-
-        print((IsHost == IsOwner ? "Host " : "Client ") + "đợi bắt đầu xong");
     }
 
     [ClientRpc]
     public void BothPlayerReadyToPlay_ClientRpc() {
-        BattleConnector.Instance.IsStarted = true;
+        BattleConnector.Instance.MakeBetEloBeforeStart().ContinueWith(
+            task => BattleConnector.Instance.IsStarted = true);
     }
 
     #region PLAY AGAIN
@@ -69,7 +61,8 @@ public class PlayerController : NetworkBehaviour {
 
     [ClientRpc]
     public void PlayAgain_ClientRpc() {
-        BattleConnector.Instance.PlayAgain();
+        BattleConnector.Instance.MakeBetEloBeforeStart().ContinueWith(
+            task => BattleConnector.Instance.PlayAgain());
     }
 
     [ServerRpc]

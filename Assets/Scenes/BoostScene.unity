@@ -1155,9 +1155,9 @@ MonoBehaviour:
   m_MaxPacketQueueSize: 128
   m_MaxPayloadSize: 6144
   m_HeartbeatTimeoutMS: 500
-  m_ConnectTimeoutMS: 1000
+  m_ConnectTimeoutMS: 10000
   m_MaxConnectAttempts: 60
-  m_DisconnectTimeoutMS: 30000
+  m_DisconnectTimeoutMS: 20000
   ConnectionData:
     Address: 127.0.0.1
     Port: 7777
@@ -1199,7 +1199,7 @@ MonoBehaviour:
     NetworkIdRecycleDelay: 120
     RpcHashSize: 0
     LoadSceneTimeOut: 120
-    SpawnTimeout: 10
+    SpawnTimeout: 20
     EnableNetworkLogs: 1
     NetworkTopology: 0
     UseCMBService: 0
@@ -1434,6 +1434,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 532d568d0a27db34a9fbd2e79939b49a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _LoadBattleImg: {fileID: 21300000, guid: 89b53d8f2c9cd224db2d2b763b83e773, type: 3}
 --- !u!1 &2074260069
 GameObject:
   m_ObjectHideFlags: 0

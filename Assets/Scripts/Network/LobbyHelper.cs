@@ -13,10 +13,12 @@ using System.Linq;
 using Unity.Services.Authentication.PlayerAccounts;
 
 public class LobbyHelper : Singleton<LobbyHelper> {
+    [SerializeField] private Sprite _LoadBattleImg;
+
     #region DATA QUERY RATE
-    public const int RATE_QUERY = 3500;
+    public const int RATE_QUERY = 1200;
     public const int RATE_HEARTBEAT = 25000;
-    public const int RATE_GET = 2500;
+    public const int RATE_GET = 1200;
     #endregion
 
     #region DATA KEY
@@ -43,10 +45,15 @@ public class LobbyHelper : Singleton<LobbyHelper> {
 
     private async Task WaitForOpponent(CancellationToken tokken) {
         while (!tokken.IsCancellationRequested) {
-            if (JoinedLobby.Value.Players.Count != 2) {
+            int? playerCount = null;
+            try { playerCount = JoinedLobby.Value.Players.Count;
+            } catch { }
+            if (playerCount != 2) {
                 await Task.Delay(RATE_GET);
                 continue;
             }
+
+            StartLoadBattleScene(_WaitForOpponentTask.CurTask);
 
             VibrateHelper.Vibrate();
 
@@ -59,25 +66,21 @@ public class LobbyHelper : Singleton<LobbyHelper> {
             };
 
             await _LobbyService.UpdateLobbyAsync(JoinedLobby.Value.Id, options);
-
-            JoinGame();
-
             return;
         }
     }
 
     private async Task WaitForHostStartGame(CancellationToken tokken) {
         while (!tokken.IsCancellationRequested) {
-            string relayCode = JoinedLobby.Value.Data[KEY_RELAY_CODE].Value;
+            string relayCode = null;
+            try { relayCode = JoinedLobby.Value.Data[KEY_RELAY_CODE].Value;
+            } catch { }
             if (relayCode == null) {
                 await Task.Delay(RATE_GET);
                 continue;
             }
 
             await RelayHelper.JoinRelay(relayCode);
-
-            JoinGame();
-
             return;
         }
     }
@@ -85,7 +88,6 @@ public class LobbyHelper : Singleton<LobbyHelper> {
     public async Task CreateLobby(string lobbyName, int maxPlayers, bool isPrivate = false) {
         try {
             RoomToolStatus.Value = RoomToolUI.Status.Creating;
-
 
             CreateLobbyOptions options = new() {
                 IsPrivate = isPrivate,
@@ -128,13 +130,14 @@ public class LobbyHelper : Singleton<LobbyHelper> {
     public async Task JoinLobbyByCode(string lobbyCode) {
 #pragma warning disable CS0168 // Variable is declared but never used
         try {
+            _WaitForHostStartGameTask = new(WaitForHostStartGame);
+            StartLoadBattleScene(_WaitForHostStartGameTask.CurTask);
+
             Lobby lobby = await _LobbyService.JoinLobbyByCodeAsync(lobbyCode);
 
             Debug.Log($"Joined lobby {lobby.Name}");
 
             JoinedLobby.StartSync(lobby, false);
-
-            _WaitForHostStartGameTask = new(WaitForHostStartGame);
         } catch (ArgumentNullException e) {
             PopupFactory.ShowSimplePopup("Vui lòng nhập mã phòng");
         } catch (LobbyServiceException e) {
@@ -151,13 +154,14 @@ public class LobbyHelper : Singleton<LobbyHelper> {
 
     public async Task JoinLobbyById(string lobbyId) {
         try {
+            _WaitForHostStartGameTask = new(WaitForHostStartGame);
+            StartLoadBattleScene(_WaitForHostStartGameTask.CurTask);
+
             Lobby lobby = await _LobbyService.JoinLobbyByIdAsync(lobbyId);
 
             Debug.Log($"Joined lobby {lobby.Name}");
 
             JoinedLobby.StartSync(lobby, false);
-
-            _WaitForHostStartGameTask = new(WaitForHostStartGame);
         } catch (LobbyServiceException e) {
             Debug.LogError(e.Message);
         }
@@ -180,6 +184,7 @@ public class LobbyHelper : Singleton<LobbyHelper> {
             Debug.Log($"Deleted lobby {JoinedLobby.Value.Name}");
 
             JoinedLobby.StopSync();
+            JoinedLobby = null;
             
             _WaitForOpponentTask?.Cancel();
             _WaitForOpponentTask = null;
@@ -198,14 +203,19 @@ public class LobbyHelper : Singleton<LobbyHelper> {
 
     public string GetClientUnityId()
         => JoinedLobby.Value.Players.First(player => player.Id != JoinedLobby.Value.HostId).Id;
-
-    public void JoinGame() {
-        ToBattleScene();
-    }
-
-    private void ToBattleScene() {
+    
+    private void StartLoadBattleScene(Task delayDisapear) {
         DataHelper.SceneBoostData.battle.battleMode = BattleMode.Player_Player;
-        LoadSceneHelper.LoadScene("BattleScene");
+        LoadSceneHelper.LoadScene(
+            "BattleScene", 
+            LoadSceneHelper.LoadStyle.Image, 
+            _LoadBattleImg, 
+            delayDisapear, 
+            new Task(async () => {
+                while (BattleConnector.Instance == null)
+                    await Task.Delay(200);
+                await BattleConnector.Instance.WaitForDoneStart();
+            }));
     }
 
     private void OnDisable() {

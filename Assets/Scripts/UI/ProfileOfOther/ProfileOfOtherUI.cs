@@ -18,10 +18,10 @@ public class ProfileOfOtherUI : MonoBehaviour {
         }
     }
 
-    public void Init(UserData data) {
+    public void Init(UserData data, int? elo = null) {
         _NameTxt.text = data.name;
         _RankTxt.WithContent("The licking");
-        _EloTxt.WithContent("Elo: " + data.elo);
+        _EloTxt.WithContent("Elo: " + (elo ?? data.elo));
 
         _FollowBtn.WithCallback(async () => {
             DataHelper.UserData.followed_player_id_firebase.Add(data.id_firebase);
