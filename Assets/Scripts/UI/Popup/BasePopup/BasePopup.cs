@@ -21,6 +21,9 @@ public class BasePopup : MonoBehaviour {
     [SerializeField] private LayoutElement _ContentElement;
     [SerializeField] private TextMeshProUGUI _ContentTxt;
     [Space]
+    [Header("LOADING ICON")]
+    [SerializeField] private GameObject _LoadingIconElement;
+    [Space]
     [Header("BUTTON")]
     [SerializeField] private LayoutElement _ButtonElement;
     [SerializeField] private RectTransform _ButtonRoot;
@@ -45,7 +48,7 @@ public class BasePopup : MonoBehaviour {
             .SetEase(Ease.OutBack);
     }
 
-    protected virtual void Disappear() {
+    public virtual void Disappear() {
         float duration = 0.2f;
 
         _BackgroundBtn.targetGraphic.DOColor(new(0, 0, 0, 0), duration);
@@ -73,6 +76,11 @@ public class BasePopup : MonoBehaviour {
         _ContentTxt.text = content;
         return this;
     }
+    
+    public BasePopup WithLoadingIcon(bool enableLoadingIcon) {
+        _LoadingIconElement.SetActive(enableLoadingIcon);
+        return this;
+    }
 
     public BasePopup WithContentColor(Color color) {
         _ContentTxt.color = color;
@@ -95,6 +103,11 @@ public class BasePopup : MonoBehaviour {
         }
         _CloseBtnObj.SetActive(exitable);
         _Exitable = exitable;
+        return this;
+    }
+
+    public BasePopup WithoutButton() {
+        foreach (RectTransform child in _ButtonRoot) Destroy(child.gameObject);
         return this;
     }
 }

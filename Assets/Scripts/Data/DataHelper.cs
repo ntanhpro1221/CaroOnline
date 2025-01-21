@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEditor;
+using UnityEngine.Events;
 
 public class DataHelper : Singleton<DataHelper> {
     public static DatabaseReference RootDB => FirebaseDatabase.DefaultInstance.RootReference;
@@ -16,6 +17,8 @@ public class DataHelper : Singleton<DataHelper> {
         get => Instance.m_UserData.Value;
         private set => Instance.m_UserData.Value = value;
     }
+    public static UnityEvent<UserData> OnUserDataChanged
+        => Instance.m_UserData.OnChanged;
 
     [SerializeField] private SceneBoostData m_SceneBoostData = new();
     public static SceneBoostData SceneBoostData
@@ -82,8 +85,10 @@ public class DataHelper : Singleton<DataHelper> {
         }
     }
 
-    public static async Task SaveCurrentUserDataAsync()
-        => await SaveObjectAsync(CurrentUserDB, UserData);
+    public static async Task SaveCurrentUserDataAsync() {
+        OnUserDataChanged.Invoke(UserData);
+        await SaveObjectAsync(CurrentUserDB, UserData);
+    }
 
     public static void ClearCachedUserData()
         => UserData = null;

@@ -129,6 +129,7 @@ GameObject:
   m_Component:
   - component: {fileID: 69654414}
   - component: {fileID: 69654413}
+  - component: {fileID: 69654415}
   m_Layer: 0
   m_Name: BackgroundMusic
   m_TagString: Untagged
@@ -148,7 +149,7 @@ AudioSource:
   OutputAudioMixerGroup: {fileID: 0}
   m_audioClip: {fileID: 8300000, guid: 1bc8d1e0c1116424c97a051a91c65bd0, type: 3}
   m_Resource: {fileID: 8300000, guid: 1bc8d1e0c1116424c97a051a91c65bd0, type: 3}
-  m_PlayOnAwake: 1
+  m_PlayOnAwake: 0
   m_Volume: 1
   m_Pitch: 1
   Loop: 1
@@ -248,6 +249,18 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &69654415
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 69654412}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bde31671f127bcc49b9127782eabcb45, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &79169353
 GameObject:
   m_ObjectHideFlags: 0
@@ -411,7 +424,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4440326903598952038, guid: 5041dbd6ad9eea6489779a8ed344f575, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: -0.000021799833
+      value: 0.0007352418
       objectReference: {fileID: 0}
     - target: {fileID: 5186624079110308068, guid: 5041dbd6ad9eea6489779a8ed344f575, type: 3}
       propertyPath: m_Name

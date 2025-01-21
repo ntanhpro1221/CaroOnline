@@ -14,9 +14,9 @@ using Unity.Services.Authentication.PlayerAccounts;
 
 public class LobbyHelper : Singleton<LobbyHelper> {
     #region DATA QUERY RATE
-    public const int RATE_QUERY = 1500;
-    public const int RATE_HEARTBEAT = 1500;
-    public const int RATE_GET = 1500;
+    public const int RATE_QUERY = 3500;
+    public const int RATE_HEARTBEAT = 25000;
+    public const int RATE_GET = 2500;
     #endregion
 
     #region DATA KEY

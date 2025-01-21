@@ -27,6 +27,10 @@ public class PlayerBotController : SceneSingleton<PlayerBotController> {
 
     private async void Start() {
         SelectableBoard.Instance.OnCellSelected.AddListener(PlayerClicked);
+        await BeginTurn();
+    }
+
+    public async Task BeginTurn() {
         if (MarkHelper.Instance.IsXTurn)
             await BotMove();
     }

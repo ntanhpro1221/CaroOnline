@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 using UnityEngine.Tilemaps;
 
@@ -20,7 +21,7 @@ public class SelectableBoard : SceneSingleton<SelectableBoard> {
         _Cam = Camera.main;
     }
     
-    private Vector3 _PressStartPoint;
+    private Vector3? _PressStartPoint;
     private bool _IsConfirmSelect = false;
     private Vector3Int? _HoveredCell;
     private Vector3Int? _PressedCell;
@@ -39,8 +40,10 @@ public class SelectableBoard : SceneSingleton<SelectableBoard> {
     private void ColorHoveredCell() {
         _HoveredCell = null;
 
-        if (LeftMouse != null) 
-            _HoveredCell = ScreenToCell(MousePos);
+        if (!EventSystem.current.IsPointerOverGameObject()) {
+            if (LeftMouse != null)
+                _HoveredCell = ScreenToCell(MousePos);
+        }
 
         if (_HoveredCell != null) 
             _Map.SetColor(_HoveredCell.Value, _HighlightedColor);
@@ -54,12 +57,14 @@ public class SelectableBoard : SceneSingleton<SelectableBoard> {
     private void ColorPressedCell() {
         _PressedCell = null;
 
-        if (LeftMouse != null &&
-            LeftMouse.isPressed)
-            _PressedCell = ScreenToCell(MousePos);
-        else if (Touchscreen.current != null &&
-            _Touches[0].Phase is TouchHelper.PHASE_MOVED or TouchHelper.PHASE_STATIONARY)
-            _PressedCell = ScreenToCell(_Touches[0].Position);
+        if (!EventSystem.current.IsPointerOverGameObject()) {
+            if (LeftMouse != null &&
+                LeftMouse.isPressed)
+                _PressedCell = ScreenToCell(MousePos);
+            else if (Touchscreen.current != null &&
+                _Touches[0].Phase is TouchHelper.PHASE_MOVED or TouchHelper.PHASE_STATIONARY)
+                _PressedCell = ScreenToCell(_Touches[0].Position);
+        }
 
         if (_PressedCell != null) 
             _Map.SetColor(_PressedCell.Value, _PressedColor);
@@ -79,19 +84,24 @@ public class SelectableBoard : SceneSingleton<SelectableBoard> {
         }
 
         void HavePressedThisFrame(Vector3 screenPos) {
-            _PressStartPoint = screenPos;
-            _IsConfirmSelect = 
-                _SelectedCell != null &&
-                _SelectedCell.Value == ScreenToCell(screenPos);
+            _PressStartPoint = null;
+            if (!EventSystem.current.IsPointerOverGameObject()) {
+                _PressStartPoint = screenPos;
+                _IsConfirmSelect =
+                    _SelectedCell != null &&
+                    _SelectedCell.Value == ScreenToCell(screenPos);
+            }
             _SelectedCell = null;
         }
         
         void HaveReleasedThisFrame(Vector3 screenPos) {
-            if (Vector2.Distance(screenPos, _PressStartPoint) <= TouchHelper.TOUCH_DISTANCE) {
+            if (_PressStartPoint != null &&
+                Vector2.Distance(screenPos, _PressStartPoint.Value) <= TouchHelper.TOUCH_DISTANCE) {
                 Vector3Int releasedCell = ScreenToCell(screenPos);
                 if (_IsConfirmSelect) OnCellSelected.Invoke(releasedCell);
                 else _SelectedCell = releasedCell;
             }
+            _PressStartPoint = null;
             _IsConfirmSelect = false;
         }
     }

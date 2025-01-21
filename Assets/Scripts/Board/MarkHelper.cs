@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.Tilemaps;
 
 [RequireComponent(typeof(Tilemap))]
+[DefaultExecutionOrder(-50)]
 public class MarkHelper : SceneSingleton<MarkHelper> {
     public bool IsXTurn { get; private set; } = true;
     public List<(Vector3Int, MarkType)> MoveHistory { get; private set; } = new();
@@ -10,12 +11,7 @@ public class MarkHelper : SceneSingleton<MarkHelper> {
     [SerializeField] private TileBase _Mark_O;
     [SerializeField] private TileBase _Mark_X;
 
-    private Tilemap _Map;
-
-    protected override void Awake() {
-        base.Awake();
-        _Map = GetComponent<Tilemap>();
-    }
+    private Tilemap _Map => GetComponent<Tilemap>();
 
     /// <summary>
     /// 
@@ -61,6 +57,11 @@ public class MarkHelper : SceneSingleton<MarkHelper> {
         _Map.SetTile(pos, _Mark_X);
         IsXTurn = !IsXTurn;
         return true;
+    }
+    
+    public void ClearAllMark() {
+        foreach (var (pos, _) in MoveHistory) Unmark(pos);
+        MoveHistory.Clear();
     }
 
     public void Unmark(Vector3Int pos) 

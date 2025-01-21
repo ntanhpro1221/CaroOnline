@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using DG.Tweening;
+using System.Collections;
 using System.Threading.Tasks;
 using TMPro;
 using Unity.Services.Core;
@@ -14,13 +15,13 @@ public class GameBooster : MonoBehaviour {
         get => _CurProgress;
         set {
             _CurProgress = value;
-            _ProgressFill.fillAmount = value;
+            _ProgressFill.DOFillAmount(value, 0.7f);
             _ProgressText.text = $"{(int)(value * 100)}%";
         }
     }
 
-    private const float VAL_CHECK_CONNECTION = 0.3f;
     private const float VAL_INIT_UGS = 0.3f;
+    private const float VAL_CHECK_CONNECTION = 0.3f;
     private const float VAL_SIGNIN = 0.4f;
 
     private void Start() {
@@ -29,6 +30,11 @@ public class GameBooster : MonoBehaviour {
 
     private IEnumerator Boost() {
         CurProgress = 0;
+        // INIT UNITY SERVICE FIRST
+        Task initServiceTask = UnityServices.InitializeAsync();
+        while (!initServiceTask.IsCompleted) yield return null;
+        CurProgress += VAL_INIT_UGS;
+        LobbyHelper.Instance.Init();
 
         // CHECK CONNECTION
         Task<bool> checkConnectionTask = ConnectionChecker.CheckConnection();
@@ -68,12 +74,6 @@ public class GameBooster : MonoBehaviour {
             }
             yield break;
         }
-        
-        // INIT UNITY SERVICE FIRST
-        Task initServiceTask = UnityServices.InitializeAsync();
-        while (!initServiceTask.IsCompleted) yield return null;
-        CurProgress += VAL_INIT_UGS;
-        LobbyHelper.Instance.Init();
 
         // TRY SIGN IN WITH CACHED UNITY ACCOUNT
         Task<bool> trySignInCachedUnityAccountTask = AuthHelper.TryCachedSignInWithUnityAsync();

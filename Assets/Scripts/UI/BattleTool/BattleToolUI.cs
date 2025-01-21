@@ -1,7 +1,7 @@
 ﻿using System.Threading.Tasks;
 using UnityEngine;
 
-public class BattleToolUI : Singleton<BattleToolUI> {
+public class BattleToolUI : SceneSingleton<BattleToolUI> {
     [SerializeField] private ButtonField _ExitBtn;
     [SerializeField] private ButtonField _ProfileOfOtherBtn;
 

@@ -13,9 +13,9 @@ public class BattleConnector : SceneSingleton<BattleConnector> {
     private async void Start() {
         if (_IsPlayerVSPlayer) {
             NetworkManager net = NetworkManager.Singleton;
-            net.OnClientConnectedCallback += OnClientConnectedCallback;
             if (AuthenticationService.Instance.PlayerId == LobbyHelper.Instance.JoinedLobby.Value.HostId) {
                 OpponentIdFirebase = await DataHelper.UnityToFirebase(LobbyHelper.Instance.GetClientUnityId());
+                net.OnClientConnectedCallback += OnClientConnectedCallback;
                 net.StartHost();
             } else {
                 OpponentIdFirebase = await DataHelper.UnityToFirebase(LobbyHelper.Instance.GetHostUnityId());
@@ -27,18 +27,19 @@ public class BattleConnector : SceneSingleton<BattleConnector> {
     }
 
     private void OnDisable() {
-        if (_IsPlayerVSPlayer) {
+        if (_IsPlayerVSPlayer && AuthenticationService.Instance.PlayerId == LobbyHelper.Instance.JoinedLobby.Value.HostId) {
             NetworkManager.Singleton.OnClientConnectedCallback -= OnClientConnectedCallback;
         }
     }
 
-    public async Task HandleResult(bool win) {
+    public async Task HandleResult(bool win, bool showPlayAgain = true) {
         SoundHelper.Play(win ? SoundType.Victory : SoundType.Lose);
 
         if (_IsPlayerVSPlayer) {
+            IWantPlayAgain = OpponentWantPlayAgain = false;
             int delPoint = await HandlePoint(win);
 
-            HandleResultPopupPvP(win, delPoint);
+            HandleResultPopupPvP(win, delPoint, showPlayAgain);
 
             MyPlayerController.isHandleResultDone.Value = true;
         } else if (_IsPlayerVSBot) {
@@ -68,7 +69,10 @@ public class BattleConnector : SceneSingleton<BattleConnector> {
             },
             new() {
                 content = "Làm lại",
-                callback = () => { print("Gạ gạ gạ"); },
+                callback = async () => {
+                    MarkHelper.Instance.ClearAllMark();
+                    await PlayerBotController.Instance.BeginTurn();
+                },
                 backgroundColor = Color.green,
             }
         ).WithExitable(false);
@@ -76,9 +80,14 @@ public class BattleConnector : SceneSingleton<BattleConnector> {
     #endregion
 
     #region PvP STUFF
-    public bool IsStarted { get; private set; } = false;
+    public bool IsStarted { get; set; } = false;
 
     public string OpponentIdFirebase { get; private set; }
+
+    public bool IWantPlayAgain = false;
+    public bool OpponentWantPlayAgain = false;
+
+    private BasePopup _ResultPopup;
 
     private PlayerController MyPlayerController;
     private PlayerController OpponentController;
@@ -91,13 +100,10 @@ public class BattleConnector : SceneSingleton<BattleConnector> {
     }
 
     private async void OnClientConnectedCallback(ulong id) {
-        NetworkManager net = NetworkManager.Singleton;
-        if (net.ConnectedClients.Count == 2) {
-            IsStarted = true;
-            if (net.IsHost) {
-                await LobbyHelper.Instance.DeleteHostedLobby();
-            }
-            net.OnClientConnectedCallback -= OnClientConnectedCallback;
+        if (MyPlayerController != null && OpponentController != null) {
+            MyPlayerController.BothPlayerReadyToPlay_ClientRpc();
+            await LobbyHelper.Instance.DeleteHostedLobby();
+            NetworkManager.Singleton.OnClientConnectedCallback -= OnClientConnectedCallback;
         }
     }
 
@@ -125,23 +131,48 @@ public class BattleConnector : SceneSingleton<BattleConnector> {
         return delPoint;
     }
     
-    private void HandleResultPopupPvP(bool win, int delPoint) {
-        PopupFactory.ShowPopup_YesNo(
-            win ? "BẠN ĐÃ THẮNG" : "BẠN ĐÃ THUA",
-            win ? $"+{delPoint} điểm danh vọng!" : $"{delPoint} điểm danh vọng",
-            new() {
-                content = "Về sảnh chính",
-                callback = Exit,
-                backgroundColor = Color.red,
-                foregroundColor = Color.yellow,
-            },
-            new() {
+    public void PlayAgain() {
+        if (!IWantPlayAgain) return;
+        IWantPlayAgain = OpponentWantPlayAgain = false;
+        MarkHelper.Instance.ClearAllMark();
+        _ResultPopup.Disappear();
+    }
+
+    private void HandleResultPopupPvP(bool win, int delPoint, bool showPlayAgain = true) {
+        ButtonField.CreateOption exitBtn = new() {
+            content = "Về sảnh chính",
+            callback = Exit,
+            backgroundColor = Color.red,
+            foregroundColor = Color.yellow,
+        };
+        _ResultPopup = PopupFactory.ShowPopup_ManualBuild();
+        _ResultPopup
+            .WithTitle(win ? "BẠN ĐÃ THẮNG" : "BẠN ĐÃ THUA")
+            .WithContent(win ? $"+{delPoint} elo!" : $"{delPoint} elo!")
+            .WithButton(exitBtn)
+            .WithContentColor(win ? Color.green : Color.red)
+            .WithExitable(false);
+
+        if (NetworkManager.Singleton.ConnectedClients.Count > 1 && showPlayAgain)
+            _ResultPopup.WithButton(new() {
                 content = "Làm lại",
-                callback = () => { print("Gạ gạ gạ"); },
-                backgroundColor = Color.green,
-            }
-        ).WithContentColor(win ? Color.green : Color.red)
-        .WithExitable(false);
+                callback = () => {
+                    if (NetworkManager.Singleton.ConnectedClients.Count < 2) {
+                        PopupFactory.ShowSimplePopup("Đối thủ của bạn thoát rồi :v");
+                        return;
+                    }
+                    IWantPlayAgain = true;
+                    _ResultPopup
+                        .WithTitle($"Đang đợi đối thủ chấp nhận")
+                        .WithContent(null)
+                        .WithLoadingIcon(true)
+                        .WithoutButton()
+                        .WithButton(exitBtn);
+                    Debug.Log("OpponentWantPlayAgain: " + OpponentWantPlayAgain);
+                    if (OpponentWantPlayAgain) MyPlayerController.PlayAgain();
+                    else MyPlayerController.AskForPlayAgain();
+                },
+                backgroundColor = Color.green, });
     }
 
     public void Surrender() 
