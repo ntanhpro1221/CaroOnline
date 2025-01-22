@@ -31,7 +31,7 @@ public class RoomToolUI : SceneSingleton<RoomToolUI> {
             _StatusLine_Waiting.SetActive(value is Status.Waiting);
             _StatusLine_DoingNothing.SetActive(value is Status.None);
             
-            _RoomCodeTxt.text = "Mã phòng: " + (LobbyHelper.Instance.JoinedLobby?.Value?.LobbyCode ?? "NULL");
+            _RoomCodeTxt.text = "Mã phòng: " + (LobbyHelper.Instance.JoinedLobby?.LobbyCode ?? "NULL");
             _Button_Create.gameObject.SetActive(value is Status.None or Status.Creating);
             _Button_Discard.gameObject.SetActive(value is Status.Waiting);
         }
@@ -43,7 +43,7 @@ public class RoomToolUI : SceneSingleton<RoomToolUI> {
     }
 
     private void OnClickCopyRoomCode() {
-        GUIUtility.systemCopyBuffer = LobbyHelper.Instance.JoinedLobby.Value?.LobbyCode ?? "NULL";
+        GUIUtility.systemCopyBuffer = LobbyHelper.Instance.JoinedLobby?.LobbyCode ?? "NULL";
         PopupFactory.ShowSimplePopup("Đã copy mã phòng");
     }
 
@@ -58,7 +58,7 @@ public class RoomToolUI : SceneSingleton<RoomToolUI> {
     }
 
     private async void OnClickDiscard() {
-        await LobbyHelper.Instance.DeleteHostedLobby();
+        await LobbyHelper.Instance.DeleteHostedLobbyAndNetwork();
     }
     
     private void OnClickSetting() {

@@ -27,6 +27,8 @@ public class RoomListUI : SceneSingleton<RoomListUI> {
         var taskQuery = LobbyHelper.Instance.QueryLobbies();
 
         List<Lobby> listRoom = await taskQuery;
+        if (listRoom == null) return;
+
         List<Lobby> addRoom = new();
         List<string> removeRoom = new();
 

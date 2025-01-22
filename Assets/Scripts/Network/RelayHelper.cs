@@ -27,6 +27,8 @@ public class RelayHelper {
             Debug.Log("Created relay with join code = " + joinCode);
 
             _Transport.SetRelayServerData(new(alloc, "dtls"));
+
+            _Network.StartHost();
         } catch (RelayServiceException e) {
             Debug.LogError(e.Message);
         }
@@ -41,6 +43,8 @@ public class RelayHelper {
             Debug.Log("Joined relay with join code = " + joinCode);
 
             _Transport.SetRelayServerData(new(alloc, "dtls"));
+
+            _Network.StartClient();
         } catch (RelayServiceException e) {
             Debug.LogError(e.Message);
         }

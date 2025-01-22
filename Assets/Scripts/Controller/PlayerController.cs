@@ -1,6 +1,4 @@
-﻿using JetBrains.Annotations;
-using System;
-using System.Runtime.CompilerServices;
+﻿using System;
 using System.Threading.Tasks;
 using Unity.Netcode;
 using UnityEngine;
@@ -9,6 +7,8 @@ public class PlayerController : NetworkBehaviour {
     [NonSerialized] public NetworkVariable<bool> isHandleResultDone = new(false,
         NetworkVariableReadPermission.Everyone,
         NetworkVariableWritePermission.Owner);
+
+    private BattleConnector Battle => BattleConnector.Instance;
 
     public void ClientClicked(Vector3Int pos) {
         if (!MarkHelper.Instance.Mark_O(pos)) return;
@@ -35,11 +35,13 @@ public class PlayerController : NetworkBehaviour {
         else NotifyHostIsWinner_ServerRpc(false);
     }
 
-    private async void Start() {
-        if (!IsOwner) BattleConnector.Instance.SetOpponentController(this);
-        else BattleConnector.Instance.SetMyController(this);
+    private void Awake() {
+        DontDestroyOnLoad(this);
+    }
 
-        await BattleConnector.Instance.WaitForDoneStart();
+    public void Init() { 
+        if (IsOwner) Battle.MyPlayerController = this;
+        else Battle.OpponentController = this;
 
         if (IsOwner) {
             if (IsHost) SelectableBoard.Instance.OnCellSelected.AddListener(HostClicked);
@@ -47,11 +49,47 @@ public class PlayerController : NetworkBehaviour {
         }
     }
 
-    [ClientRpc]
-    public void BothPlayerReadyToPlay_ClientRpc() {
-        BattleConnector.Instance.MakeBetEloBeforeStart().ContinueWith(
-            task => BattleConnector.Instance.IsStarted = true);
+    #region START PLAY
+    public bool TryBothPlayerReadyToPlay() {
+        if (!Battle.ImReadyToPlay || !Battle.OpponentReadyToPlay) return false;
+        if (IsHost) BothPlayerReadyToPlay_ClientRpc();
+        else BothPlayerReadyToPlay_ServerRpc();
+        return true;
     }
+
+    [ClientRpc]
+    private void BothPlayerReadyToPlay_ClientRpc() {
+        Battle.MakeBetEloBeforeStart().ContinueWith(
+            task => Battle.BothReadyToPlay = true);
+    }
+
+    [ServerRpc]
+    public void BothPlayerReadyToPlay_ServerRpc()
+        => BothPlayerReadyToPlay_ClientRpc();
+    
+    public void ImReadyToPlay() {
+        Battle.ImReadyToPlay = true;
+        if (TryBothPlayerReadyToPlay()) return;
+        if (IsHost) OpponentReadyToPlay_ClientRpc();
+        else OpponentReadyToPlay_ServerRpc();
+    }
+    
+    private void OpponentReadyToPlay() {
+        Battle.OpponentReadyToPlay = true;
+        if (Battle.MyPlayerController.TryBothPlayerReadyToPlay()) return;
+    }
+
+    [ClientRpc]
+    private void OpponentReadyToPlay_ClientRpc() {
+        if (IsHost) return;
+        OpponentReadyToPlay();
+    }
+
+    [ServerRpc]
+    private void OpponentReadyToPlay_ServerRpc() {
+        OpponentReadyToPlay();
+    }
+    #endregion
 
     #region PLAY AGAIN
     public void PlayAgain() {
@@ -61,8 +99,8 @@ public class PlayerController : NetworkBehaviour {
 
     [ClientRpc]
     public void PlayAgain_ClientRpc() {
-        BattleConnector.Instance.MakeBetEloBeforeStart().ContinueWith(
-            task => BattleConnector.Instance.PlayAgain());
+        Battle.MakeBetEloBeforeStart().ContinueWith(
+            task => Battle.PlayAgain());
     }
 
     [ServerRpc]
@@ -77,21 +115,21 @@ public class PlayerController : NetworkBehaviour {
     [ClientRpc]
     public void AskForPlayAgain_ClientRpc(bool excludeHost = true) {
         if (IsHost && excludeHost) return;
-        BattleConnector.Instance.OpponentWantPlayAgain = true;
-        if (BattleConnector.Instance.IWantPlayAgain) PlayAgain();
+        Battle.OpponentWantPlayAgain = true;
+        if (Battle.IWantPlayAgain) PlayAgain();
     }
 
     [ServerRpc]
     public void AskForPlayAgain_ServerRpc() {
-        BattleConnector.Instance.OpponentWantPlayAgain = true;
-        if (BattleConnector.Instance.IWantPlayAgain) PlayAgain();
+        Battle.OpponentWantPlayAgain = true;
+        if (Battle.IWantPlayAgain) PlayAgain();
     }
     #endregion
 
     #region NOTIFY WINNER
     [ClientRpc]
     public void NotifyHostIsWinner_ClientRpc(bool showPlayAgain = true) {
-        Task _ = BattleConnector.Instance.HandleResult(IsHost, showPlayAgain); 
+        Task _ = Battle.HandleResult(IsHost, showPlayAgain); 
     }
 
     [ServerRpc]
@@ -100,7 +138,7 @@ public class PlayerController : NetworkBehaviour {
 
     [ClientRpc]
     public void NotifyClientIsWinner_ClientRpc(bool showPlayAgain = true) {
-        Task _ = BattleConnector.Instance.HandleResult(!IsHost, showPlayAgain); 
+        Task _ = Battle.HandleResult(!IsHost, showPlayAgain); 
     }
 
     [ServerRpc]

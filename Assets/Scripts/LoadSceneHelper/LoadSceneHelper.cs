@@ -1,5 +1,6 @@
 ﻿using DG.Tweening;
 using System.Threading.Tasks;
+using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.SceneManagement;
@@ -50,7 +51,14 @@ public class LoadSceneHelper : Singleton<LoadSceneHelper> {
         _DelayApear = null;
     }
 
-    public static void LoadScene(string sceneName, LoadStyle loadStyle = LoadStyle.Fade, Sprite imageToShow = null, Task delayDisapear = null, Task delayApear = null) {
+    public static void LoadScene(
+        string sceneName, 
+        LoadStyle loadStyle = LoadStyle.Fade, 
+        Sprite imageToShow = null, 
+        Task delayDisapear = null, 
+        Task delayApear = null, 
+        bool manualShowImage = false) {
+        //////////////////////////////////////////////////////////////////
         // CUSTOM WAIT
         _DelayApear = delayApear;
 
@@ -69,6 +77,7 @@ public class LoadSceneHelper : Singleton<LoadSceneHelper> {
                     .DOFade(1, Instance._Duration));
                 break;
             case LoadStyle.Image:
+                if (manualShowImage) break;
                 FillRect(Instance._ImageObj).gameObject.SetActive(true);
                 sequence.Append(Instance._ImageObj
                     .DOMove(new(Screen.width / 2, Screen.height / 2), Instance._Duration)
@@ -85,6 +94,21 @@ public class LoadSceneHelper : Singleton<LoadSceneHelper> {
             }
             loadTask.allowSceneActivation = true;
         });
+    }
+    
+    public static void ShowImage(Sprite image = null) {
+        FillRect(Instance._ImageObj).gameObject.SetActive(true);
+        Instance._ImageObj
+            .DOMove(new(Screen.width / 2, Screen.height / 2), Instance._Duration)
+            .SetEase(Ease.OutBack);
+        if (image != null) Instance._ImageObj.GetComponent<Image>().sprite = image;
+    }
+
+    public static void HideImage() {
+       Instance._ImageObj
+            .DOMove(new(Screen.width / 2, Screen.height * 1.5f), Instance._Duration)
+            .SetEase(Ease.InBack)
+            .OnComplete(() => Instance._ImageObj.gameObject.SetActive(false));
     }
 
     public enum LoadStyle {

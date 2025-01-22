@@ -10,27 +10,25 @@ public class BattleConnector : SceneSingleton<BattleConnector> {
         => DataHelper.SceneBoostData.battle.battleMode == BattleMode.Player_Player;
     private bool _IsPlayerVSBot
         => DataHelper.SceneBoostData.battle.battleMode == BattleMode.Player_Bot;
-    private bool _IsQuited = false;
+    private NetworkManager _Network 
+        => NetworkManager.Singleton;
 
     private async void Start() {
         if (_IsPlayerVSPlayer) {
             // load opponent infomation before start connect
-            OpponentIdFirebase = 
-                AuthenticationService.Instance.PlayerId == LobbyHelper.Instance.JoinedLobby.Value.HostId
-                ? await DataHelper.UnityToFirebase(LobbyHelper.Instance.GetClientUnityId())
-                : await DataHelper.UnityToFirebase(LobbyHelper.Instance.GetHostUnityId());
+            OpponentIdFirebase = _Network.IsHost
+                ? await DataHelper.UnityToFirebase(LobbyHelper.Instance.ClientUnityId)
+                : await DataHelper.UnityToFirebase(LobbyHelper.Instance.HostUnityId);
             OpponentElo = (await DataHelper.LoadUserDataAsync(OpponentIdFirebase)).elo;
             
-            // start connect
-            NetworkManager net = NetworkManager.Singleton;
-            net.OnClientDisconnectCallback += OnClientDisconnectedCallback;
-            if (AuthenticationService.Instance.PlayerId == LobbyHelper.Instance.JoinedLobby.Value.HostId) {
-                net.OnClientConnectedCallback += OnClientConnectedCallback;
-                net.StartHost();
-            } else {
-                net.StartClient();
-            }
-            LobbyHelper.Instance.JoinedLobby.StopSync();
+            // init controller
+            foreach (var controller in FindObjectsByType<PlayerController>(FindObjectsSortMode.None))
+                controller.Init();
+
+            // when client disconnect handle
+            _Network.OnClientDisconnectCallback += OnClientDisconnectedCallback;
+
+            MyPlayerController.ImReadyToPlay();
         } else if (_IsPlayerVSBot) {
             Instantiate(_PlayerBotController);
         }
@@ -38,15 +36,16 @@ public class BattleConnector : SceneSingleton<BattleConnector> {
 
     private void OnDisable() {
         _IsQuited = true;
-        if (_IsPlayerVSPlayer) { 
-            NetworkManager.Singleton.OnClientDisconnectCallback -= OnClientDisconnectedCallback;
-            NetworkManager.Singleton.OnClientConnectedCallback -= OnClientConnectedCallback;
-            LobbyHelper.Instance.RelayHelper.Shutdown();
+        if (_IsPlayerVSPlayer) {
+            Destroy(MyPlayerController.gameObject);
+            Destroy(OpponentController.gameObject);
+            _Network.OnClientDisconnectCallback -= OnClientDisconnectedCallback;
+            _Network.Shutdown();
         }
     }
    
     public async Task HandleResult(bool win, bool showPlayAgain = true, string customTitle = null) {
-        IsPlaying = false;
+        _IsPlaying = false;
 
         SoundHelper.Play(win ? SoundType.Victory : SoundType.Lose);
 
@@ -63,8 +62,7 @@ public class BattleConnector : SceneSingleton<BattleConnector> {
     }
     
     public void Exit() {
-        if (_IsPlayerVSPlayer) 
-            LobbyHelper.Instance.RelayHelper.Shutdown();
+        if (_IsPlayerVSPlayer) _Network.Shutdown();
         LoadSceneHelper.LoadScene("LobbyScene");
     }
 
@@ -95,60 +93,49 @@ public class BattleConnector : SceneSingleton<BattleConnector> {
     #endregion
 
     #region PvP STUFF
-    public bool IsStarted { get; set; } = false;
-
-    public string OpponentIdFirebase { get; private set; }
+    public bool ImReadyToPlay = false;
+    public bool OpponentReadyToPlay = false;
+    public bool BothReadyToPlay = false;
     
     public bool IWantPlayAgain = false;
     public bool OpponentWantPlayAgain = false;
 
-    private bool IsPlaying = false;
-    private int BetElo;
+    private bool _IsQuited = false;
+    private bool _IsPlaying = false;
+
+    public string OpponentIdFirebase { get; private set; }
     public int OpponentElo { get; private set; }
+
+    private int BetElo;
     private BasePopup _ResultPopup;
 
-    private PlayerController MyPlayerController;
-    private PlayerController OpponentController;
+    public PlayerController MyPlayerController;
+    public PlayerController OpponentController;
     
     public async Task MakeBetEloBeforeStart() {
-        IsPlaying = true;
+        _IsPlaying = true;
         BetElo = -EloDeltaEvaluate.GetDeltaElo(DataHelper.UserData.elo, OpponentElo, false);
         DataHelper.UserData.elo -= BetElo;
         await DataHelper.SaveCurrentUserDataAsync();
     }
 
-    public void SetMyController(PlayerController controller)
-        => MyPlayerController = controller;
-
-    public void SetOpponentController(PlayerController controller) {
-        OpponentController = controller;
-    }
-
-    private async void OnClientConnectedCallback(ulong id) {
-        if (MyPlayerController != null && OpponentController != null) {
-            MyPlayerController.BothPlayerReadyToPlay_ClientRpc();
-            await LobbyHelper.Instance.DeleteHostedLobby();
-            NetworkManager.Singleton.OnClientConnectedCallback -= OnClientConnectedCallback;
-        }
-    }
-
     private async void OnClientDisconnectedCallback(ulong id) {
-        if (!IsPlaying) return;
+        if (!_IsPlaying) return;
         await Task.Delay(5000);
         if (_IsQuited) return;
         await HandleResult(true, false, "Bạn đã thắng do đối thủ của bạn đã thoát");
     }
 
     public async Task WaitForDoneStart() {
-        while (!IsStarted) await Task.Delay(100);
+        while (!BothReadyToPlay) await Task.Delay(33);
     }
     
     public async Task WaitForOpponentHandleResult() {
-        while (!OpponentController.isHandleResultDone.Value) await Task.Delay(100);
+        while (!OpponentController.isHandleResultDone.Value) await Task.Delay(33);
     }
     
     public async Task WaitForMeHandleResult() {
-        while (!MyPlayerController.isHandleResultDone.Value) await Task.Delay(100);
+        while (!MyPlayerController.isHandleResultDone.Value) await Task.Delay(33);
     }
 
     private async Task<int> HandlePoint(bool win) {

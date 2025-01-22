@@ -3,18 +3,14 @@ using Unity.Services.Lobbies.Models;
 using UnityEngine;
 using System.Threading.Tasks;
 using System.Collections.Generic;
-using Unity.Services.Core;
 using Unity.Services.Authentication;
-using System.Threading;
-using UnityEngine.SceneManagement;
 using Unity.Netcode;
 using System;
 using System.Linq;
-using Unity.Services.Authentication.PlayerAccounts;
+using UnityEngine.SceneManagement;
+using TMPro;
 
 public class LobbyHelper : Singleton<LobbyHelper> {
-    [SerializeField] private Sprite _LoadBattleImg;
-
     #region DATA QUERY RATE
     public const int RATE_QUERY = 1200;
     public const int RATE_HEARTBEAT = 25000;
@@ -25,123 +21,108 @@ public class LobbyHelper : Singleton<LobbyHelper> {
     private const string KEY_RELAY_CODE = "Relay Code";
     #endregion
 
-    public BindableProperty<RoomToolUI.Status> RoomToolStatus { get; } = new();
-    public RealtimeLobby JoinedLobby { get; private set; }
-    public RelayHelper RelayHelper { get; private set; }
-
+    [SerializeField] private Sprite _LoadBattleImg;
     private ILobbyService _LobbyService;
     private ILobbyServiceSDK _LobbySDK;
-    private CancellableTask _WaitForOpponentTask;
-    private CancellableTask _WaitForHostStartGameTask;
+    private NetworkManager _Network;
+    private RelayHelper _RelayHelper;
+    private AutoBeatLobby _JoinedLobby;
+
+    public BindableProperty<RoomToolUI.Status> RoomToolStatus 
+        { get; } = new();
+
+    public Lobby JoinedLobby {
+        get => _JoinedLobby?.Value;
+        private set => _JoinedLobby.StartSync(value, AuthHelper.id_unity == value.HostId);
+    }
+
+    public string HostUnityId 
+        => JoinedLobby?.HostId;
+
+    public string ClientUnityId 
+        => JoinedLobby?.Players.First(player => player.Id != JoinedLobby.HostId).Id;
 
     public void Init() {
         _LobbyService = LobbyService.Instance;
         _LobbySDK = Lobbies.Instance;
-        RelayHelper = new();
-        JoinedLobby = new(LobbyService.Instance);
+        _Network = NetworkManager.Singleton;
+        _RelayHelper = new();
+        _JoinedLobby = new(LobbyService.Instance);
 
         RoomToolStatus.Value = RoomToolUI.Status.None;
     }
 
-    private async Task WaitForOpponent(CancellationToken tokken) {
-        while (!tokken.IsCancellationRequested) {
-            int? playerCount = null;
-            try { playerCount = JoinedLobby.Value.Players.Count;
-            } catch { }
-            if (playerCount != 2) {
-                await Task.Delay(RATE_GET);
-                continue;
-            }
+    private async void OnClientConnect(ulong id) {
+        Debug.LogWarning("Client connect nè :" + _Network.ConnectedClients.Count);
 
-            StartLoadBattleScene(_WaitForOpponentTask.CurTask);
+        if (_Network.ConnectedClients.Count != 2) return;
+        _Network.OnClientConnectedCallback -= OnClientConnect;
 
+        if (_Network.IsHost) {
             VibrateHelper.Vibrate();
+            LoadSceneHelper.ShowImage(_LoadBattleImg);
 
-            string relayCode = await RelayHelper.CreateRelay();
-
-            UpdateLobbyOptions options = new() {
-                Data = new() {
-                    { KEY_RELAY_CODE, new(DataObject.VisibilityOptions.Member, relayCode) }
-                },
-            };
-
-            await _LobbyService.UpdateLobbyAsync(JoinedLobby.Value.Id, options);
-            return;
+            _JoinedLobby.StartSync(await _LobbyService.GetLobbyAsync(JoinedLobby.Id), true);
         }
+
+        LoadBattleScene();
+
+        await DeleteHostedLobby();
     }
 
-    private async Task WaitForHostStartGame(CancellationToken tokken) {
-        while (!tokken.IsCancellationRequested) {
-            string relayCode = null;
-            try { relayCode = JoinedLobby.Value.Data[KEY_RELAY_CODE].Value;
-            } catch { }
-            if (relayCode == null) {
-                await Task.Delay(RATE_GET);
-                continue;
-            }
+    private async Task<string> StartHostNetwork() {
+        _Network.OnClientConnectedCallback -= OnClientConnect;
+        _Network.OnClientConnectedCallback += OnClientConnect;
 
-            await RelayHelper.JoinRelay(relayCode);
-            return;
-        }
+        return await _RelayHelper.CreateRelay();
+    }
+
+    private async Task StartClientNetwork(string relayCode) {
+        _Network.OnClientConnectedCallback -= OnClientConnect;
+        _Network.OnClientConnectedCallback += OnClientConnect;
+        
+        LoadSceneHelper.ShowImage(_LoadBattleImg);
+
+        await _RelayHelper.JoinRelay(relayCode);
+    }
+    
+    private void StopNetwork() {
+        _Network.OnClientConnectedCallback -= OnClientConnect;
+        _Network.Shutdown();
     }
 
     public async Task CreateLobby(string lobbyName, int maxPlayers, bool isPrivate = false) {
         try {
             RoomToolStatus.Value = RoomToolUI.Status.Creating;
+            
+            string relayCode = await StartHostNetwork();
 
-            CreateLobbyOptions options = new() {
+            JoinedLobby = await _LobbyService.CreateLobbyAsync(lobbyName, maxPlayers, new() {
                 IsPrivate = isPrivate,
                 Data = new() {
-                    { KEY_RELAY_CODE, new(DataObject.VisibilityOptions.Member, null) }
+                    { KEY_RELAY_CODE, new(DataObject.VisibilityOptions.Member, relayCode) }
                 },
-            };
-
-            Lobby lobby = await _LobbyService.CreateLobbyAsync(lobbyName, maxPlayers, options);
-
-            Debug.Log($"Created lobby {lobbyName} with code = {lobby.LobbyCode}");
-
-            JoinedLobby.StartSync(lobby, true);
+            });
 
             RoomToolStatus.Value = RoomToolUI.Status.Waiting;
             VibrateHelper.Vibrate();
 
-            _WaitForOpponentTask = new(WaitForOpponent);
+            Debug.Log($"Created lobby {JoinedLobby.Name} with code = {JoinedLobby.LobbyCode}");
         } catch (LobbyServiceException e) {
             Debug.LogError(e.Message);
         }
-    }
-
-    public async Task<List<Lobby>> QueryLobbies() {
-        List<Lobby> listLobby = null;
-
-        try {
-            listLobby = (await _LobbySDK.QueryLobbiesAsync()).Results;
-
-            Debug.Log(listLobby.Count + " lobbies found");
-        } catch (LobbyServiceException e) {
-            Debug.LogError(e.Message);
-            await Task.Delay(RATE_QUERY);
-            return await QueryLobbies();
-        }
-
-        return listLobby;
     }
 
     public async Task JoinLobbyByCode(string lobbyCode) {
-#pragma warning disable CS0168 // Variable is declared but never used
         try {
-            _WaitForHostStartGameTask = new(WaitForHostStartGame);
-            StartLoadBattleScene(_WaitForHostStartGameTask.CurTask);
+            JoinedLobby = await _LobbyService.JoinLobbyByCodeAsync(lobbyCode);
 
-            Lobby lobby = await _LobbyService.JoinLobbyByCodeAsync(lobbyCode);
+            await StartClientNetwork(JoinedLobby.Data[KEY_RELAY_CODE].Value);
 
-            Debug.Log($"Joined lobby {lobby.Name}");
-
-            JoinedLobby.StartSync(lobby, false);
-        } catch (ArgumentNullException e) {
+            Debug.Log($"Joined lobby {JoinedLobby.Name}");
+        } catch (ArgumentNullException) {
             PopupFactory.ShowSimplePopup("Vui lòng nhập mã phòng");
         } catch (LobbyServiceException e) {
-#pragma warning restore CS0168 // Variable is declared but never used
             PopupFactory.ShowSimplePopup(e.Reason switch {
                 LobbyExceptionReason.InvalidJoinCode or
                 LobbyExceptionReason.ValidationError or
@@ -154,71 +135,86 @@ public class LobbyHelper : Singleton<LobbyHelper> {
 
     public async Task JoinLobbyById(string lobbyId) {
         try {
-            _WaitForHostStartGameTask = new(WaitForHostStartGame);
-            StartLoadBattleScene(_WaitForHostStartGameTask.CurTask);
+            JoinedLobby = await _LobbyService.JoinLobbyByIdAsync(lobbyId);
 
-            Lobby lobby = await _LobbyService.JoinLobbyByIdAsync(lobbyId);
+            Debug.LogWarning("Lấy lobby xong nè");
 
-            Debug.Log($"Joined lobby {lobby.Name}");
+            await StartClientNetwork(JoinedLobby.Data[KEY_RELAY_CODE].Value);
 
-            JoinedLobby.StartSync(lobby, false);
+            Debug.LogWarning("start network xong nè");
+
+
+            Debug.Log($"Joined lobby {JoinedLobby.Name}");
         } catch (LobbyServiceException e) {
             Debug.LogError(e.Message);
         }
     }
     
     public async Task DeleteHostedLobby() {
-        if (JoinedLobby.Value == null) {
+        if (JoinedLobby == null) {
             Debug.LogWarning("You are not in any lobby");
             return;
         }
         
-        if (JoinedLobby.Value.HostId != AuthenticationService.Instance.PlayerId) {
+        if (JoinedLobby.HostId != AuthenticationService.Instance.PlayerId) {
             Debug.LogWarning("You dont have permission to delete current lobby");
             return;
         }
 
         try {
-            await _LobbyService.DeleteLobbyAsync(JoinedLobby.Value.Id);
+            await _LobbyService.DeleteLobbyAsync(JoinedLobby.Id);
 
-            Debug.Log($"Deleted lobby {JoinedLobby.Value.Name}");
+            Debug.Log($"Deleted lobby {JoinedLobby.Name}");
 
-            JoinedLobby.StopSync();
-            JoinedLobby = null;
-            
-            _WaitForOpponentTask?.Cancel();
-            _WaitForOpponentTask = null;
-
-            _WaitForHostStartGameTask?.Cancel();
-            _WaitForHostStartGameTask = null;
+            _JoinedLobby.StopSync();
+            _JoinedLobby = null;
 
             RoomToolStatus.Value = RoomToolUI.Status.None;
         } catch (LobbyServiceException e) {
             Debug.LogError(e.Message);
         }
     }
-    
-    public string GetHostUnityId() 
-        => JoinedLobby.Value.HostId;
 
-    public string GetClientUnityId()
-        => JoinedLobby.Value.Players.First(player => player.Id != JoinedLobby.Value.HostId).Id;
+    public async Task DeleteHostedLobbyAndNetwork() {
+        await DeleteHostedLobby();
+        StopNetwork();
+    }
     
-    private void StartLoadBattleScene(Task delayDisapear) {
-        DataHelper.SceneBoostData.battle.battleMode = BattleMode.Player_Player;
-        LoadSceneHelper.LoadScene(
-            "BattleScene", 
-            LoadSceneHelper.LoadStyle.Image, 
-            _LoadBattleImg, 
-            delayDisapear, 
-            new Task(async () => {
-                while (BattleConnector.Instance == null)
-                    await Task.Delay(200);
-                await BattleConnector.Instance.WaitForDoneStart();
-            }));
+    public async Task<List<Lobby>> QueryLobbies(bool tryHard = false) {
+        List<Lobby> listLobby;
+
+        try {
+            listLobby = (await _LobbySDK.QueryLobbiesAsync()).Results;
+
+            Debug.Log(listLobby.Count + " lobbies found");
+        } catch (LobbyServiceException e) {
+            Debug.LogError(e.Message);
+            if (!tryHard) return null;
+            await Task.Delay(RATE_QUERY);
+            return await QueryLobbies();
+        }
+
+        return listLobby;
     }
 
-    private void OnDisable() {
-        _ = DeleteHostedLobby();
+    private void LoadBattleScene() {
+        Debug.LogWarning("Load battle secene nè");
+
+        DataHelper.SceneBoostData.battle.battleMode = BattleMode.Player_Player;
+        LoadSceneHelper.LoadScene(
+            sceneName: "BattleScene",
+            loadStyle: LoadSceneHelper.LoadStyle.Image,
+            imageToShow: _LoadBattleImg,
+            delayDisapear: null,
+            delayApear: new Task(async () => {
+                while (BattleConnector.Instance == null)
+                    await Task.Delay(33);
+                await BattleConnector.Instance.WaitForDoneStart();
+            }),
+            manualShowImage: true);
+    }
+
+    private async void OnDisable() {
+        await DeleteHostedLobbyAndNetwork();
     }
 }
