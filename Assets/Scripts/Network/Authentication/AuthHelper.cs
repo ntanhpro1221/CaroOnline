@@ -2,6 +2,7 @@
 using System;
 using System.Threading.Tasks;
 using Unity.Services.Authentication;
+using Unity.Services.Core;
 using UnityEngine;
 
 public class AuthHelper : Singleton<AuthHelper> {
@@ -10,8 +11,9 @@ public class AuthHelper : Singleton<AuthHelper> {
     private static FirebaseAuth _FirebaseService 
         => FirebaseAuth.DefaultInstance;
 
-    public static bool IsSignedIn 
-        => _UnityService.IsSignedIn &&
+    public static bool IsSignedIn => 
+        UnityServices.State == ServicesInitializationState.Initialized &&
+        _UnityService?.IsSignedIn == true &&
         _FirebaseService.CurrentUser != null;
 
     public static FirebaseUser User => _FirebaseService.CurrentUser;

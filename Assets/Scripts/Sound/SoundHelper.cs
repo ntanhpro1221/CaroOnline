@@ -7,12 +7,16 @@ public class SoundHelper : Singleton<SoundHelper> {
     [SerializeField] private SoundTable _SoundTable;
 
     public static void Play(SoundType soundType) {
-        if (!DataHelper.UserData.setting.sound) return;
+        if (AuthHelper.IsSignedIn 
+            ? !DataHelper.UserData.setting.sound
+            : false) return;
         Instance.AudioSource.PlayOneShot(Instance._SoundTable[soundType]);
     }
 
     public static void Play(SoundType soundType, float volumeScale) {
-        if (!DataHelper.UserData.setting.sound) return;
+        if (AuthHelper.IsSignedIn 
+            ? !DataHelper.UserData.setting.sound
+            : false) return;
         Instance.AudioSource.PlayOneShot(Instance._SoundTable[soundType], volumeScale);
     }
 }
