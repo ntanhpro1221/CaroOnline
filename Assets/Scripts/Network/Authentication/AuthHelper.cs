@@ -1,13 +1,10 @@
 ﻿using Firebase.Auth;
 using System;
-using System.Linq.Expressions;
 using System.Threading.Tasks;
 using Unity.Services.Authentication;
-using Unity.Services.Authentication.PlayerAccounts;
 using UnityEngine;
-using WebSocketSharp;
 
-public class AuthHelper {
+public class AuthHelper : Singleton<AuthHelper> {
     private static IAuthenticationService _UnityService 
         => AuthenticationService.Instance;
     private static FirebaseAuth _FirebaseService 

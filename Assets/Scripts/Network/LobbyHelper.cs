@@ -33,7 +33,10 @@ public class LobbyHelper : Singleton<LobbyHelper> {
 
     public Lobby JoinedLobby {
         get => _JoinedLobby?.Value;
-        private set => _JoinedLobby.StartSync(value, AuthHelper.id_unity == value.HostId);
+        private set {
+            if (value == null) _JoinedLobby.StopSync();
+            else _JoinedLobby.StartSync(value, AuthHelper.id_unity == value.HostId);  
+        }
     }
 
     public string HostUnityId 
@@ -62,7 +65,7 @@ public class LobbyHelper : Singleton<LobbyHelper> {
             VibrateHelper.Vibrate();
             LoadSceneHelper.ShowImage(_LoadBattleImg);
 
-            _JoinedLobby.StartSync(await _LobbyService.GetLobbyAsync(JoinedLobby.Id), true);
+            JoinedLobby = await _LobbyService.GetLobbyAsync(JoinedLobby.Id);
         }
 
         LoadBattleScene();
@@ -166,8 +169,7 @@ public class LobbyHelper : Singleton<LobbyHelper> {
 
             Debug.Log($"Deleted lobby {JoinedLobby.Name}");
 
-            _JoinedLobby.StopSync();
-            _JoinedLobby = null;
+            JoinedLobby = null;
 
             RoomToolStatus.Value = RoomToolUI.Status.None;
         } catch (LobbyServiceException e) {
@@ -209,7 +211,7 @@ public class LobbyHelper : Singleton<LobbyHelper> {
             delayApear: new Task(async () => {
                 while (BattleConnector.Instance == null)
                     await Task.Delay(33);
-                await BattleConnector.Instance.WaitForDoneStart();
+                await BattleConnector.Instance.WaitForBothReadyToPlay();
             }),
             manualShowImage: true);
     }

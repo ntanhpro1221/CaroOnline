@@ -32,7 +32,7 @@ public class RoomToolUI : SceneSingleton<RoomToolUI> {
             _StatusLine_DoingNothing.SetActive(value is Status.None);
             
             _RoomCodeTxt.text = "Mã phòng: " + (LobbyHelper.Instance.JoinedLobby?.LobbyCode ?? "NULL");
-            _Button_Create.gameObject.SetActive(value is Status.None or Status.Creating);
+            _Button_Create.gameObject.SetActive(value is Status.None);
             _Button_Discard.gameObject.SetActive(value is Status.Waiting);
         }
     }

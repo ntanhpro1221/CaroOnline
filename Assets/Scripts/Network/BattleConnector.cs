@@ -20,7 +20,7 @@ public class BattleConnector : SceneSingleton<BattleConnector> {
                 ? await DataHelper.UnityToFirebase(LobbyHelper.Instance.ClientUnityId)
                 : await DataHelper.UnityToFirebase(LobbyHelper.Instance.HostUnityId);
             OpponentElo = (await DataHelper.LoadUserDataAsync(OpponentIdFirebase)).elo;
-            
+
             // init controller
             foreach (var controller in FindObjectsByType<PlayerController>(FindObjectsSortMode.None))
                 controller.Init();
@@ -28,7 +28,11 @@ public class BattleConnector : SceneSingleton<BattleConnector> {
             // when client disconnect handle
             _Network.OnClientDisconnectCallback += OnClientDisconnectedCallback;
 
-            MyPlayerController.ImReadyToPlay();
+            MyPlayerController.isReadyToPlay.Value = true;
+
+            await WaitForBothReadyToPlay();
+
+            await MakeBetEloBeforeStart();
         } else if (_IsPlayerVSBot) {
             Instantiate(_PlayerBotController);
         }
@@ -37,10 +41,10 @@ public class BattleConnector : SceneSingleton<BattleConnector> {
     private void OnDisable() {
         _IsQuited = true;
         if (_IsPlayerVSPlayer) {
-            Destroy(MyPlayerController.gameObject);
-            Destroy(OpponentController.gameObject);
-            _Network.OnClientDisconnectCallback -= OnClientDisconnectedCallback;
-            _Network.Shutdown();
+            if (_Network != null) {
+                _Network.OnClientDisconnectCallback -= OnClientDisconnectedCallback;
+                _Network.Shutdown();
+            }
         }
     }
    
@@ -50,7 +54,6 @@ public class BattleConnector : SceneSingleton<BattleConnector> {
         SoundHelper.Play(win ? SoundType.Victory : SoundType.Lose);
 
         if (_IsPlayerVSPlayer) {
-            IWantPlayAgain = OpponentWantPlayAgain = false;
             int delPoint = await HandlePoint(win);
 
             HandleResultPopupPvP(win, delPoint, showPlayAgain, customTitle);
@@ -93,13 +96,6 @@ public class BattleConnector : SceneSingleton<BattleConnector> {
     #endregion
 
     #region PvP STUFF
-    public bool ImReadyToPlay = false;
-    public bool OpponentReadyToPlay = false;
-    public bool BothReadyToPlay = false;
-    
-    public bool IWantPlayAgain = false;
-    public bool OpponentWantPlayAgain = false;
-
     private bool _IsQuited = false;
     private bool _IsPlaying = false;
 
@@ -112,11 +108,14 @@ public class BattleConnector : SceneSingleton<BattleConnector> {
     public PlayerController MyPlayerController;
     public PlayerController OpponentController;
     
-    public async Task MakeBetEloBeforeStart() {
+    private async Task MakeBetEloBeforeStart() {
+        Debug.LogWarning("Bắt đầu make bet");
         _IsPlaying = true;
         BetElo = -EloDeltaEvaluate.GetDeltaElo(DataHelper.UserData.elo, OpponentElo, false);
         DataHelper.UserData.elo -= BetElo;
         await DataHelper.SaveCurrentUserDataAsync();
+
+        Debug.LogWarning("make bet xong");
     }
 
     private async void OnClientDisconnectedCallback(ulong id) {
@@ -125,17 +124,12 @@ public class BattleConnector : SceneSingleton<BattleConnector> {
         if (_IsQuited) return;
         await HandleResult(true, false, "Bạn đã thắng do đối thủ của bạn đã thoát");
     }
-
-    public async Task WaitForDoneStart() {
-        while (!BothReadyToPlay) await Task.Delay(33);
-    }
     
-    public async Task WaitForOpponentHandleResult() {
-        while (!OpponentController.isHandleResultDone.Value) await Task.Delay(33);
-    }
-    
-    public async Task WaitForMeHandleResult() {
-        while (!MyPlayerController.isHandleResultDone.Value) await Task.Delay(33);
+    public async Task WaitForBothReadyToPlay() {
+        while (
+            MyPlayerController?.isReadyToPlay.Value != true ||
+            OpponentController?.isReadyToPlay.Value != true)
+            await Task.Delay(33);
     }
 
     private async Task<int> HandlePoint(bool win) {
@@ -162,12 +156,14 @@ public class BattleConnector : SceneSingleton<BattleConnector> {
         return delPoint;
     }
     
-    public void PlayAgain() {
-        if (!IWantPlayAgain) return;
-        IWantPlayAgain = OpponentWantPlayAgain = false;
+    private void PlayAgain() {
+        MyPlayerController.isWantPlayAgain.Value = false;
+        MyPlayerController.isHandleResultDone.Value = false;
+        Debug.LogWarning("Play again trong battle được gọi: ");
         WinLineColor.Instance.ClearColor();
         MarkHelper.Instance.ResetForNewGame();
         _ResultPopup.Disappear();
+        Debug.LogWarning("Play again xong");
     }
 
     private void HandleResultPopupPvP(bool win, int delPoint, bool showPlayAgain = true, string customTitle = null) {
@@ -188,21 +184,26 @@ public class BattleConnector : SceneSingleton<BattleConnector> {
         if (NetworkManager.Singleton.ConnectedClients.Count > 1 && showPlayAgain)
             _ResultPopup.WithButton(new() {
                 content = "Làm lại",
-                callback = () => {
+                callback = async () => {
                     if (NetworkManager.Singleton.ConnectedClients.Count < 2) {
                         PopupFactory.ShowSimplePopup("Đối thủ của bạn thoát rồi :v");
                         return;
                     }
-                    IWantPlayAgain = true;
+
                     _ResultPopup
                         .WithTitle($"Đang đợi đối thủ chấp nhận")
                         .WithContent(null)
                         .WithLoadingIcon(true)
                         .WithoutButton()
                         .WithButton(exitBtn);
-                    Debug.Log("OpponentWantPlayAgain: " + OpponentWantPlayAgain);
-                    if (OpponentWantPlayAgain) MyPlayerController.PlayAgain();
-                    else MyPlayerController.AskForPlayAgain();
+
+                    MyPlayerController.isWantPlayAgain.Value = true;
+
+                    await WaitHelper.WaitFor(() => OpponentController?.isWantPlayAgain.Value == true);
+
+                    await MakeBetEloBeforeStart();
+
+                    PlayAgain();
                 },
                 backgroundColor = Color.green, });
     }

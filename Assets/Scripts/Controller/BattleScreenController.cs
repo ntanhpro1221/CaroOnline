@@ -1,16 +1,18 @@
-﻿using UnityEngine;
+﻿using DG.Tweening;
+using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 
-public class ScreenController : MonoBehaviour {
+public class BattleScreenController : SceneSingleton<BattleScreenController> {
     [SerializeField] [Range(1.1f, 1.2f)] private float _ZoomSpeed = 1.1f;
     [SerializeField] private float _MinOrthoSize = 2;
     [SerializeField] private float _MaxOrthoSize = 12;
-    private Camera _Cam;
+    private Camera _Cam => Camera.main;
     private Vector2? oldMouse; // window only
-
-    private void Awake() {
-        _Cam = Camera.main;
+    
+    public void FocusOn(Vector2 worldPos) {
+        Vector3 CamWorldPos2D = new(worldPos.x, worldPos.y, _Cam.transform.position.z);
+        _Cam.transform.DOMove(CamWorldPos2D, 0.4f).SetEase(Ease.OutQuad);
     }
 
     private void OnApplicationFocus(bool focus) {

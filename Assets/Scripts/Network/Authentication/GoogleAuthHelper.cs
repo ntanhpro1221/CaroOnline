@@ -2,11 +2,13 @@
 using UnityEngine;
 using UnityEngine.Networking;
 
-public class GoogleAuthHelper {
+public class GoogleAuthHelper : Singleton<GoogleAuthHelper> {
+    [SerializeField] private ClientDataAsset clientData;
+
     private const string code_server = "https://oauth2.googleapis.com/token";
     private const string auth_server = "https://accounts.google.com/o/oauth2/v2/auth";
-    private const string client_id = "368495500101-bc3pifpq1q3unvde685t4pgh3s0995a7.apps.googleusercontent.com";
-    private const string client_secret = "";
+    private static string client_id => Instance.clientData.client_id;
+    private static string client_secret => Instance.clientData.client_secret;
     private const string redirect_uri = AuthInfo.app_uri + ":";
     private const string response_type = "code";
     private const string scope = "openid%20profile%20email";

@@ -1,4 +1,6 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
+using Unity.Netcode;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Tilemaps;
@@ -6,36 +8,53 @@ using UnityEngine.Tilemaps;
 [RequireComponent(typeof(Tilemap))]
 [DefaultExecutionOrder(-50)]
 public class MarkHelper : SceneSingleton<MarkHelper> {
-    private bool _BeginIsXTurn = true;
-    public bool IsXTurn { get; private set; } = true;
+    public bool _IsHostOrPlayerBegin = true;
+    private bool _IsCurTurnIsHostOrPlayer = true;
+    public MarkType CurTurnMark { get; private set; } = MarkType.X;
     public List<(Vector3Int, MarkType)> MoveHistory { get; private set; } = new();
 
+    [Header("Mark tile")]
     [SerializeField] private TileBase _Mark_O;
     [SerializeField] private TileBase _Mark_X;
+    [Space]
+    [Header("Color last mark")]
+    [SerializeField] private TileBase _LastColorCell;
+    [SerializeField] private Color _LastMarkColor_O;
+    [SerializeField] private Color _LastMarkColor_X;
+    [SerializeField] private Tilemap _LastMarkMap;
 
     private Tilemap _Map => GetComponent<Tilemap>();
 
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="pos"></param>
-    /// <returns>Is this move valid</returns>
-    public bool Mark_O(Vector3Int pos) {
-        // Check empty
-        if (_Map.HasTile(pos)) return false;
+    private void ColorLastMark(Vector3Int pos, bool isHostOrPlayer) {
+        _LastMarkMap.ClearAllTiles();
 
-        // Check true turn
-        if (IsXTurn) {
-            VibrateHelper.Vibrate();
-            PopupFactory.ShowSimplePopup("Not your turn!");
-            return false;
+        switch (DataHelper.SceneBoostData.battle.battleMode) {
+            case BattleMode.Player_Player:
+                if (isHostOrPlayer == NetworkManager.Singleton.IsHost) return;
+                break;
+            case BattleMode.Player_Bot:
+                if (isHostOrPlayer) return;
+                break;
         }
 
-        MoveHistory.Add((pos, MarkType.O));
-        SoundHelper.Play(SoundType.MakeMove);
-        _Map.SetTile(pos, _Mark_O);
-        IsXTurn = !IsXTurn;
-        return true;
+        _LastMarkMap.SetTile(pos, _LastColorCell);
+        _LastMarkMap.SetColor(pos, 
+            CurTurnMark == MarkType.X
+            ? _LastMarkColor_X 
+            : _LastMarkColor_O);
+    }
+
+    private TileBase TileOfMark(MarkType type) =>
+        type == MarkType.X
+        ? _Mark_X
+        : _Mark_O;
+
+    private void SwitchTurn() {
+        CurTurnMark =
+            CurTurnMark == MarkType.X
+            ? MarkType.O
+            : MarkType.X;
+        _IsCurTurnIsHostOrPlayer = !_IsCurTurnIsHostOrPlayer;
     }
 
     /// <summary>
@@ -43,27 +62,37 @@ public class MarkHelper : SceneSingleton<MarkHelper> {
     /// </summary>
     /// <param name="pos"></param>
     /// <returns>Is this move valid</returns>
-    public bool Mark_X(Vector3Int pos) {
+    public bool MakeMove(Vector3Int pos, bool isHostOrPlayer) {
         // Check empty
         if (_Map.HasTile(pos)) return false;
 
         // Check true turn
-        if (!IsXTurn) {
+        if (_IsCurTurnIsHostOrPlayer != isHostOrPlayer) {
             VibrateHelper.Vibrate();
             PopupFactory.ShowSimplePopup("Not your turn!");
             return false;
         }
+        
+        if (DataHelper.SceneBoostData.battle.battleMode == BattleMode.Player_Player &&
+            MoveHistory.Count == 0 &&
+            _IsHostOrPlayerBegin != NetworkManager.Singleton.IsHost) {
+            BattleScreenController.Instance.FocusOn(_Map.CellToWorld(pos));
+        }
 
-        MoveHistory.Add((pos, MarkType.X));
+        ColorLastMark(pos, isHostOrPlayer);
+        MoveHistory.Add((pos, CurTurnMark));
         SoundHelper.Play(SoundType.MakeMove);
-        _Map.SetTile(pos, _Mark_X);
-        IsXTurn = !IsXTurn;
+        _Map.SetTile(pos, TileOfMark(CurTurnMark));
+
+        SwitchTurn();
         return true;
     }
-    
+
     public void ResetForNewGame() {
-        IsXTurn = _BeginIsXTurn = !_BeginIsXTurn;
+        CurTurnMark = MarkType.X;
+        _IsCurTurnIsHostOrPlayer = _IsHostOrPlayerBegin = !_IsHostOrPlayerBegin;
         _Map.ClearAllTiles();
+        _LastMarkMap.ClearAllTiles();
         MoveHistory.Clear();
     }
 
@@ -81,7 +110,7 @@ public class MarkHelper : SceneSingleton<MarkHelper> {
         }
         return false;
     }
-
+    
     public List<Vector3Int> LonggestConsecutiveMatch_FromThisMark(Vector3Int pos) {
         List<Vector3Int> longgest = new();
 

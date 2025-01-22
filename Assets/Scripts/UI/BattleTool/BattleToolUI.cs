@@ -20,9 +20,8 @@ public class BattleToolUI : SceneSingleton<BattleToolUI> {
                     callback = async () => {
                         BattleConnector.Instance.Surrender();
 
-                        await Task.WhenAll(
-                            BattleConnector.Instance.WaitForOpponentHandleResult(),
-                            BattleConnector.Instance.WaitForMeHandleResult());
+                        await WaitHelper.WaitFor(() 
+                            => BattleConnector.Instance.OpponentController.isHandleResultDone.Value == true);
 
                         BattleConnector.Instance.Exit();
                     },
@@ -51,7 +50,7 @@ public class BattleToolUI : SceneSingleton<BattleToolUI> {
     }
 
     private async void OnClickProfileOfOther() {
-        await BattleConnector.Instance.WaitForDoneStart();
+        await BattleConnector.Instance.WaitForBothReadyToPlay();
 
         UserData data = await DataHelper.LoadUserDataAsync(BattleConnector.Instance.OpponentIdFirebase);
 
