@@ -20,7 +20,9 @@ public class ProfileOfOtherUI : MonoBehaviour {
 
     public void Init(UserData data, int? elo = null) {
         _NameTxt.text = data.name;
-        _RankTxt.WithContent("The licking");
+        _RankTxt
+            .WithContent(DataHelper.GetRankOfElo(data.elo).Name)
+            .WithColor(DataHelper.GetRankOfElo(data.elo).Color);
         _EloTxt.WithContent("Elo: " + (elo ?? data.elo));
 
         _FollowBtn.WithCallback(async () => {

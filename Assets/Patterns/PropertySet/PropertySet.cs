@@ -34,13 +34,29 @@ public class PropertySet<TKey, TValue> :
         for (int i = 0; i < m_Values.Length; i++) m_Values[i] = default;
     }
 
+    private void InitFromInsideDict() {
+        m_Keys = Enum.GetNames(typeof(TKey));
+        m_Values = new TValue[Enum.GetNames(typeof(TKey)).Length];
+        for (int i = 0; i < m_Values.Length; i++) m_Values[i] = base[m_Keys[i]];
+    }
+
     public PropertySet() : base() => InitEnumField();
 
     private int EToInt(TKey key) => Convert.ToInt32(key);
 
     public TValue this[TKey key] {
-        get => m_Values[EToInt(key)];
-        set => m_Values[EToInt(key)] = value;
+        get {
+            if (m_Values == null || m_Values.Length == 0)
+                InitFromInsideDict();
+            return m_Values[EToInt(key)];
+        }
+        set {
+            if (m_Values == null || m_Values.Length == 0)
+                InitFromInsideDict();
+            m_Values[EToInt(key)]
+                = base[key.ToString()]
+                = value;
+        }
     }
 
     public void OnBeforeSerialize() {

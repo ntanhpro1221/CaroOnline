@@ -14,7 +14,8 @@ public class AuthHelper : Singleton<AuthHelper> {
     public static bool IsSignedIn => 
         UnityServices.State == ServicesInitializationState.Initialized &&
         _UnityService?.IsSignedIn == true &&
-        _FirebaseService.CurrentUser != null;
+        _FirebaseService.CurrentUser != null &&
+        _FirebaseService.CurrentUser.IsValid();
 
     public static FirebaseUser User => _FirebaseService.CurrentUser;
     public static string id_unity => _UnityService.PlayerId;
@@ -50,7 +51,7 @@ public class AuthHelper : Singleton<AuthHelper> {
 
         if (!_UnityService.IsSignedIn) return false;
 
-        await DataHelper.LoadCurrentUserDataAsync();
+        await DataHelper.LoadWhenSignedIn();
 
         return true;
     }
@@ -66,7 +67,7 @@ public class AuthHelper : Singleton<AuthHelper> {
                     _UnityService.SignInWithGoogleAsync(authResponse.id_token),
                     _FirebaseService.SignInWithCredentialAsync(GoogleAuthProvider.GetCredential(authResponse.id_token, authResponse.access_token)));
 
-                if (IsSignedIn) await DataHelper.LoadCurrentUserDataAsync();
+                if (IsSignedIn) await DataHelper.LoadWhenSignedIn();
 
                 callback?.Invoke(IsSignedIn);
             });

@@ -1,8 +1,12 @@
+using System;
 using Unity.Netcode;
 using UnityEngine;
 
+[Serializable]
+public class Bob {
+
+}
+
 public class Alice : MonoBehaviour {
-    private void Update() {
-        print(NetworkManager.Singleton.ConnectedClients.Count);
-    }
+    [SerializeField] private PropertySet<RankType, RankDataConfig> m_RankDataConfig;
 }

@@ -69,8 +69,11 @@ public class SettingWindowUI : MonoBehaviour {
         });
 
         // Info
-        _RankTxt.WithContent("The licking");
-        _EloTxt.WithContent("Elo: " + data.elo);
+        _RankTxt
+            .WithContent(DataHelper.GetRankOfCurrentUser().Name)
+            .WithColor(DataHelper.GetRankOfCurrentUser().Color);
+        _EloTxt
+            .WithContent("Elo: " + DataHelper.UserData.elo);
             
         // Sign out
         _SignOutBtn.WithCallback(() => {

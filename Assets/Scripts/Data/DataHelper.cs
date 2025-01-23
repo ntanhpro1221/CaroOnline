@@ -6,24 +6,48 @@ using System.Threading.Tasks;
 using UnityEngine;
 using UnityEditor;
 using UnityEngine.Events;
+using System.Linq;
+using UnityEngine.Timeline;
 
 public class DataHelper : Singleton<DataHelper> {
-    public static DatabaseReference RootDB => FirebaseDatabase.DefaultInstance.RootReference;
-    public static DatabaseReference CurrentUserDB => RootDB.Child(AuthHelper.User.UserId);
-    public static DatabaseReference UnityToFireBaseDB => RootDB.Child("0Unity To Firebase");
+    public static DatabaseReference RootDB 
+        => FirebaseDatabase.DefaultInstance.RootReference;
 
-    [SerializeField] private BindableProperty<UserData> m_UserData;
-    public static UserData UserData {
-        get => Instance.m_UserData.Value;
-        private set => Instance.m_UserData.Value = value;
+    public static async Task LoadWhenSignedIn() {
+        await LoadCurrentUserDataAsync();
+        await LoadRankDataConfigAsync();
     }
-    public static UnityEvent<UserData> OnUserDataChanged
-        => Instance.m_UserData.OnChanged;
 
+    #region SCENE BOOST DATA
     [SerializeField] private SceneBoostData m_SceneBoostData = new();
+
     public static SceneBoostData SceneBoostData
         => Instance.m_SceneBoostData;
+    #endregion
 
+    #region UNITY TO FIREBASE
+    public static DatabaseReference UnityToFireBaseDB 
+        => RootDB.Child("Unity To Firebase");
+
+    public static async Task<string> UnityToFirebase(string id_unity)
+        => await LoadObjectAsync<string>(UnityToFireBaseDB.Child(id_unity));
+    #endregion
+
+    #region RANK
+    [SerializeField] private RankDataSO m_RankDataSO;
+    [SerializeField] private PropertySet<RankType, RankDataConfig> m_RankDataConfig;
+
+    public static DatabaseReference RankDataConfigDB 
+        => RootDB.Child("Rank Data Config");
+
+    public static RankData GetRankOfElo(int elo) 
+        => RankHelper.GetRankOfElo(elo, Instance.m_RankDataConfig, Instance.m_RankDataSO);
+
+    public static RankData GetRankOfCurrentUser()
+        => RankHelper.GetRankOfElo(UserData.elo, Instance.m_RankDataConfig, Instance.m_RankDataSO);
+    #endregion
+
+    #region SAVE LOAD PATTERN
     private static async Task<T> LoadObjectAsync<T>(DatabaseReference dataRef) {
         print($"Start load {typeof(T).Name} ({Time.time})");
         string json = (await dataRef.GetValueAsync()).GetRawJsonValue() 
@@ -42,6 +66,24 @@ public class DataHelper : Singleton<DataHelper> {
         }
         print($"Done save {data.GetType().Name} ({Time.time})");
     }
+    #endregion
+
+    #region USER DATA
+    [SerializeField] private BindableProperty<UserData> m_UserData;
+
+    public static DatabaseReference UserDB 
+        => RootDB.Child("User Data");
+
+    public static DatabaseReference CurrentUserDB 
+        => UserDB.Child(AuthHelper.User.UserId);
+
+    public static UserData UserData {
+        get => Instance.m_UserData.Value;
+        private set => Instance.m_UserData.Value = value;
+    }
+
+    public static UnityEvent<UserData> OnUserDataChanged
+        => Instance.m_UserData.OnChanged;
 
     private static UserData GenDefaultUserDataForCurrentUser() => new() {
         id_firebase = AuthHelper.User.UserId,
@@ -56,16 +98,13 @@ public class DataHelper : Singleton<DataHelper> {
         }
     };
 
-    public static async Task<string> UnityToFirebase(string id_unity)
-        => await LoadObjectAsync<string>(UnityToFireBaseDB.Child(id_unity));
-
     public static async Task<UserData> LoadUserDataAsync(string id_firebase) { 
-        UserData data = await LoadObjectAsync<UserData>(RootDB.Child(id_firebase));
+        UserData data = await LoadObjectAsync<UserData>(UserDB.Child(id_firebase));
         data.followed_player_id_firebase ??= new();
         return data;
     }
 
-    public static async Task LoadCurrentUserDataAsync() {
+    private static async Task LoadCurrentUserDataAsync() {
         UserData data = null;
 
         try {
@@ -92,17 +131,34 @@ public class DataHelper : Singleton<DataHelper> {
 
     public static void ClearCachedUserData()
         => UserData = null;
-    
+    #endregion
+
+    #region RANK DATA CONFIG
+    private static async Task LoadRankDataConfigAsync() {
+        try {
+            Instance.m_RankDataConfig = await LoadObjectAsync<PropertySet<RankType, RankDataConfig>>(RankDataConfigDB);
+        } catch (UserNotHaveDataException) {
+            Instance.m_RankDataConfig = new();
+        } catch (Exception e) { Debug.LogException(e); }
+    }
+
+    private static async Task SaveRankDataConfigAsync()
+        => await SaveObjectAsync(RankDataConfigDB, Instance.m_RankDataConfig);
+    #endregion
+
     public class UserNotHaveDataException : Exception { }
 
 #if UNITY_EDITOR
     [CustomEditor(typeof(DataHelper))]
     public class DataManagerEditor : Editor {
+        private SerializedProperty m_RankDataSO;
+        private SerializedProperty m_RankDataConfig;
         private SerializedProperty m_UserData;
-        private bool m_UserData_Fold = false;
         private SerializedProperty m_SceneBoostData;
 
         private void OnEnable() {
+            m_RankDataSO = serializedObject.FindProperty(nameof(DataHelper.m_RankDataSO));
+            m_RankDataConfig = serializedObject.FindProperty(nameof(DataHelper.m_RankDataConfig));
             m_UserData = serializedObject.FindProperty(nameof(DataHelper.m_UserData));
             m_SceneBoostData = serializedObject.FindProperty(nameof(DataHelper.m_SceneBoostData));
         }
@@ -111,6 +167,15 @@ public class DataHelper : Singleton<DataHelper> {
             serializedObject.Update();
             EditorGUI.BeginChangeCheck();
 
+            EditorGUILayout.LabelField("CONFIG", EditorStyles.boldLabel);
+            EditorGUILayout.PropertyField(m_RankDataSO, true);
+
+            EditorGUILayout.Space();
+            EditorGUILayout.LabelField("JUST VIEW", EditorStyles.boldLabel);
+            RenderDataField(
+                m_RankDataConfig,
+                new("Load", () => _ = DataHelper.LoadRankDataConfigAsync()),
+                new("Save", () => _ = DataHelper.SaveRankDataConfigAsync()));
             RenderDataField(
                 m_UserData,
                 new("Load", () => _ = DataHelper.LoadCurrentUserDataAsync()),
@@ -122,27 +187,22 @@ public class DataHelper : Singleton<DataHelper> {
         }
 
         private void RenderDataField(SerializedProperty data, params EditorButton[] buttons) {
-            // Label
             EditorGUILayout.BeginHorizontal();
-            m_UserData_Fold = EditorGUILayout.Foldout(m_UserData_Fold, data.displayName);
-            foreach (var button in buttons) button.Display();
+            
+            EditorGUILayout.PropertyField(data, true);
+
+            EditorGUI.DrawRect(EditorGUILayout.GetControlRect(false, GUILayout.Width(1), GUILayout.ExpandHeight(true)), Color.gray);
+            
+            //if (buttons.Length != 0) {
+                float maxWidthBtn = buttons.Max(button => GUI.skin.button.CalcSize(new(button.name)).x);
+                EditorGUILayout.BeginVertical(GUILayout.Width(maxWidthBtn));
+                foreach (var button in buttons) button.Display(maxWidthBtn);
+                EditorGUILayout.EndVertical();
+            //}
+
             EditorGUILayout.EndHorizontal();
 
-            // Child element
-            EditorGUI.indentLevel++;
-            if (m_UserData_Fold) foreach (var ite in GetDirectChilds(data))
-                    EditorGUILayout.PropertyField(ite);
-            EditorGUI.indentLevel--;
-        }
-
-        private IEnumerable<SerializedProperty> GetDirectChilds(SerializedProperty prop) {
-            if (!prop.hasVisibleChildren) yield break;
-            var ite = prop.Copy(); ite.NextVisible(true);
-            var end = prop.GetEndProperty();
-            do {
-                EditorGUILayout.PropertyField(ite);
-                ite.NextVisible(false);
-            } while (!SerializedProperty.EqualContents(ite, end));
+            EditorGUI.DrawRect(EditorGUILayout.GetControlRect(false, 1), Color.gray);
         }
 
         private class EditorButton {
@@ -152,8 +212,8 @@ public class DataHelper : Singleton<DataHelper> {
                 this.name = name;
                 this.onClick = onClick;
             }
-            public void Display() {
-                if (GUILayout.Button(name))
+            public void Display(float width) {
+                if (GUILayout.Button(name, GUILayout.Width(width)))
                     onClick.Invoke();
             }
         }
