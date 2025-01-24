@@ -1,7 +1,6 @@
-﻿using System.Threading.Tasks;
-using UnityEngine;
+﻿using UnityEngine;
 
-public class BattleToolUI : SceneSingleton<BattleToolUI> {
+public class BattleToolUI : SceneSingleton<BattleToolUI>, ISceneEscapeHandlable {
     [SerializeField] private ButtonField _ExitBtn;
     [SerializeField] private ButtonField _ProfileOfOtherBtn;
 
@@ -10,7 +9,7 @@ public class BattleToolUI : SceneSingleton<BattleToolUI> {
     private bool _IsPlayerVSBot
         => DataHelper.SceneBoostData.battle.battleMode == BattleMode.Player_Bot;
 
-    private void OnClickExit() {
+    public void OnEscape() {
         if (_IsPlayerVSPlayer) {
             PopupFactory.ShowPopup_YesNo(
                 "Bạn có chắc muốn thoát trận?",
@@ -58,7 +57,7 @@ public class BattleToolUI : SceneSingleton<BattleToolUI> {
     }
 
     private void Start() {
-        _ExitBtn.WithCallback(OnClickExit);
+        _ExitBtn.WithCallback(OnEscape);
         if (_IsPlayerVSPlayer) {
             _ProfileOfOtherBtn.gameObject.SetActive(true);
             _ProfileOfOtherBtn.WithCallback(OnClickProfileOfOther);

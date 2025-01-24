@@ -44,12 +44,12 @@ public class RoomToolUI : SceneSingleton<RoomToolUI> {
 
     private void OnClickCopyRoomCode() {
         GUIUtility.systemCopyBuffer = LobbyHelper.Instance.JoinedLobby?.LobbyCode ?? "NULL";
-        PopupFactory.ShowSimplePopup("Đã copy mã phòng");
+        PopupFactory.ShowSimpleNotification("Đã copy mã phòng");
     }
 
     private async void OnClickCreate() {
         if (!ConnectionChecker.CachedInternetCheckResult) {
-            PopupFactory.ShowPopup_PlayingOfflineMode();
+            PopupFactory.ShowNotification_PlayingOffline();
             return;
         }
         await LobbyHelper.Instance.CreateLobby(
@@ -63,7 +63,7 @@ public class RoomToolUI : SceneSingleton<RoomToolUI> {
     
     private void OnClickSetting() {
         if (!ConnectionChecker.CachedInternetCheckResult) {
-            PopupFactory.ShowPopup_PlayingOfflineMode();
+            PopupFactory.ShowNotification_PlayingOffline();
             return;
         }
         PopupFactory.ShowSettingWindow();
@@ -71,7 +71,7 @@ public class RoomToolUI : SceneSingleton<RoomToolUI> {
     
     private void OnClickJoinWithCode() {
         if (!ConnectionChecker.CachedInternetCheckResult) {
-            PopupFactory.ShowPopup_PlayingOfflineMode();
+            PopupFactory.ShowNotification_PlayingOffline();
             return;
         }
         var (popup, fields) = PopupFactory.ShowPopup_WithInputField();

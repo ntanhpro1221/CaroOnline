@@ -1,12 +1,10 @@
-using System;
-using Unity.Netcode;
 using UnityEngine;
-
-[Serializable]
-public class Bob {
-
-}
+using UnityEngine.InputSystem;
 
 public class Alice : MonoBehaviour {
-    [SerializeField] private PropertySet<RankType, RankDataConfig> m_RankDataConfig;
+    private void Update() {
+        if (Keyboard.current.escapeKey.wasReleasedThisFrame) {
+            Debug.LogWarning("ESCAPE---------------");
+        }        
+    }
 }

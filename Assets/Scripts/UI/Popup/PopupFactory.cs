@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using System.Linq;
+using UnityEngine;
 using UnityEngine.SceneManagement;
 
 public class PopupFactory : Singleton<PopupFactory> {
@@ -11,46 +13,71 @@ public class PopupFactory : Singleton<PopupFactory> {
 
     protected override void Awake() {
         base.Awake();
-        SceneManager.sceneLoaded += DestroyAllPopup;
+
+        void DestroyAllUI() {
+            foreach (RectTransform child in Instance.transform) Destroy(child.gameObject);
+            _PopupList.Clear();
+        }
+
+        SceneManager.sceneLoaded += (_, _) => DestroyAllUI();
     }
 
-    private static void DestroyAllPopup(Scene arg0, LoadSceneMode arg1) {
-        foreach (RectTransform child in Instance.transform) Destroy(child.gameObject);
+    #region POPUP
+    private static List<BasePopup> _PopupList = new();
+
+    public static bool TryRemoveTopPopup() {
+        if (_PopupList.Count == 0) return false;
+        BasePopup popup = _PopupList.Last();
+        if (!popup.Exitable) return false;
+        popup.Disappear();
+        return true;
+    }
+
+    private static BasePopup SpawnPopup(GameObject popupObj) {
+        BasePopup popup = Instantiate(popupObj, Instance.transform).GetComponent<BasePopup>();
+        _PopupList.Add(popup);
+        popup.WithExitCallback(() => _PopupList.Remove(popup));
+        return popup;
+    }
+    
+    private static (BasePopup, T) SpawnExtendedPopup<T>(GameObject popupObj) where T : MonoBehaviour {
+        BasePopup popup = SpawnPopup(popupObj);
+        return (popup, popup.GetComponent<T>());
     }
 
     public static BasePopup ShowPopup_ManualBuild()
-        => Instantiate(Instance._BasePopupObj, Instance.transform).GetComponent<BasePopup>();
+        => SpawnPopup(Instance._BasePopupObj);
 
     public static BasePopup ShowPopup_YesNo(string title, string content, ButtonField.CreateOption noBtn, ButtonField.CreateOption yesBtn)
-        => Instantiate(Instance._BasePopupObj, Instance.transform).GetComponent<BasePopup>()
+        => SpawnPopup(Instance._BasePopupObj)
         .WithTitle(title)
         .WithContent(content)
         .WithButton(noBtn, true)
         .WithButton(yesBtn, true);
-    
-    public static (BasePopup, PopupContent_InputFields) ShowPopup_WithInputField() {
-        GameObject obj = Instantiate(Instance._PopupWithInputFieldObj, Instance.transform);
-        return (obj.GetComponent<BasePopup>(), obj.GetComponent<PopupContent_InputFields>());
+
+    public static (BasePopup, PopupContent_InputFields) ShowPopup_WithInputField()
+        => SpawnExtendedPopup<PopupContent_InputFields>(Instance._PopupWithInputFieldObj);
+
+    public static void ShowSettingWindow()
+        => SpawnExtendedPopup<SettingWindowUI>(Instance._SettingWindowObj).Item2.Init();
+
+    public static (BasePopup, ProfileOfOtherUI) ShowProfileOfOther(UserData data, int? elo = null) {
+        var popup = SpawnExtendedPopup<ProfileOfOtherUI>(Instance._ProfileOfOtherObj);
+        popup.Item2.Init(data, elo);
+        return popup;
     }
 
-    public static void ShowSimplePopup(string content, float duration = 2)
+    public static void ShowListFollowedPlayer()
+        => SpawnExtendedPopup<ListFollowedPlayerWindowUI>(Instance._ListFollowedPlayerObj).Item2.Init();
+    #endregion
+
+    #region NOTIFICATION
+    public static void ShowSimpleNotification(string content, float duration = 2)
         => Instantiate(Instance._SimplePopupObj, Instance.transform).GetComponent<SimplePopup>().Init(
             content,
             duration);
 
-    public static void ShowSettingWindow()
-        => Instantiate(Instance._SettingWindowObj, Instance.transform).GetComponent<SettingWindowUI>().Init();
-
-    public static (BasePopup, ProfileOfOtherUI) ShowProfileOfOther(UserData data, int? elo = null) {
-        GameObject obj = Instantiate(Instance._ProfileOfOtherObj, Instance.transform);
-        return (
-            obj.GetComponent<BasePopup>(),
-            obj.GetComponent<ProfileOfOtherUI>().Init(data, elo));
-    }
-
-    public static void ShowPopup_PlayingOfflineMode()
-        => ShowSimplePopup("Bạn đang chơi ở chế độ offline");
-
-    public static void ShowListFollowedPlayer()
-        => Instantiate(Instance._ListFollowedPlayerObj, Instance.transform).GetComponent<ListFollowedPlayerWindowUI>().Init();
+    public static void ShowNotification_PlayingOffline()
+        => ShowSimpleNotification("Bạn đang chơi ở chế độ offline");
+    #endregion
 }

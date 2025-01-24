@@ -186,7 +186,7 @@ public class BattleConnector : SceneSingleton<BattleConnector> {
                 content = "Làm lại",
                 callback = async () => {
                     if (NetworkManager.Singleton.ConnectedClients.Count < 2) {
-                        PopupFactory.ShowSimplePopup("Đối thủ của bạn thoát rồi :v");
+                        PopupFactory.ShowSimpleNotification("Đối thủ của bạn thoát rồi :v");
                         return;
                     }
 

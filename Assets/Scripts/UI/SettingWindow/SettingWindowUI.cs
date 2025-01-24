@@ -81,7 +81,7 @@ public class SettingWindowUI : MonoBehaviour {
         // Sign out
         _SignOutBtn.WithCallback(() => {
             AuthHelper.SignOut(() => {
-                PopupFactory.ShowSimplePopup("Đã đăng xuất");
+                PopupFactory.ShowSimpleNotification("Đã đăng xuất");
                 LoadSceneHelper.LoadScene("SignInScene");
             });
         });

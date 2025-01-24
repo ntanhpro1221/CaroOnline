@@ -28,14 +28,14 @@ public class ProfileOfOtherUI : MonoBehaviour {
         _FollowBtn.WithCallback(async () => {
             DataHelper.UserData.followed_player_id_firebase.Add(data.id_firebase);
             await DataHelper.SaveCurrentUserDataAsync();
-            PopupFactory.ShowSimplePopup("Đã theo dõi " + data.name);
+            PopupFactory.ShowSimpleNotification("Đã theo dõi " + data.name);
             FollowStatus = EFollowStatus.Followed;
         });
 
         _UnfollowBtn.WithCallback(async () => {
             DataHelper.UserData.followed_player_id_firebase.Remove(data.id_firebase);
             await DataHelper.SaveCurrentUserDataAsync();
-            PopupFactory.ShowSimplePopup("Đã bỏ theo dõi " + data.name);
+            PopupFactory.ShowSimpleNotification("Đã bỏ theo dõi " + data.name);
             FollowStatus = EFollowStatus.Nope;
         });
 

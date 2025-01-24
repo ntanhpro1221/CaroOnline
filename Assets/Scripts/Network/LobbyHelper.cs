@@ -124,9 +124,9 @@ public class LobbyHelper : Singleton<LobbyHelper> {
 
             Debug.Log($"Joined lobby {JoinedLobby.Name}");
         } catch (ArgumentNullException) {
-            PopupFactory.ShowSimplePopup("Vui lòng nhập mã phòng");
+            PopupFactory.ShowSimpleNotification("Vui lòng nhập mã phòng");
         } catch (LobbyServiceException e) {
-            PopupFactory.ShowSimplePopup(e.Reason switch {
+            PopupFactory.ShowSimpleNotification(e.Reason switch {
                 LobbyExceptionReason.InvalidJoinCode or
                 LobbyExceptionReason.ValidationError or
                 LobbyExceptionReason.ValidationError => "Mã phòng không hợp lệ",

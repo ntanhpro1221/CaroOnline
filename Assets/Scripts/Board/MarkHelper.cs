@@ -69,7 +69,7 @@ public class MarkHelper : SceneSingleton<MarkHelper> {
         // Check true turn
         if (_IsCurTurnIsHostOrPlayer != isHostOrPlayer) {
             VibrateHelper.Vibrate();
-            PopupFactory.ShowSimplePopup("Not your turn!");
+            PopupFactory.ShowSimpleNotification("Not your turn!");
             return false;
         }
         

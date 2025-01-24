@@ -22,7 +22,7 @@ public class SignInUnityButton : MonoBehaviour {
                     true
                 );
         } else {
-            PopupFactory.ShowSimplePopup("Thành công");
+            PopupFactory.ShowSimpleNotification("Thành công");
             LoadSceneHelper.LoadScene("LobbyScene");
         }
     }

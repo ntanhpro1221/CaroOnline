@@ -30,11 +30,11 @@ public class BasePopup : MonoBehaviour {
     [SerializeField] private RectTransform _ButtonRoot;
 
     private Action _ExitCallback;
-    private bool _Exitable = true;
+    public bool Exitable { get; private set; } = true;
 
     private void Start() {
         Appear();
-        if (_Exitable) {
+        if (Exitable) {
             _BackgroundBtn.onClick.AddListener(Disappear);
             _CloseBtn.onClick.AddListener(Disappear);
         }
@@ -107,7 +107,7 @@ public class BasePopup : MonoBehaviour {
             _CloseBtn.onClick.AddListener(Disappear);
         }
         _CloseBtnObj.SetActive(exitable);
-        _Exitable = exitable;
+        Exitable = exitable;
         return this;
     }
 
@@ -117,7 +117,7 @@ public class BasePopup : MonoBehaviour {
     }
 
     public BasePopup WithExitCallback(Action callback) {
-        _ExitCallback = callback;
+        _ExitCallback += callback;
         return this;
     }
 }
