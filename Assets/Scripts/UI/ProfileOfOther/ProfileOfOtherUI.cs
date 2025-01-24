@@ -18,7 +18,7 @@ public class ProfileOfOtherUI : MonoBehaviour {
         }
     }
 
-    public void Init(UserData data, int? elo = null) {
+    public ProfileOfOtherUI Init(UserData data, int? elo = null) {
         _NameTxt.text = data.name;
         _RankTxt
             .WithContent(DataHelper.GetRankOfElo(data.elo).Name)
@@ -42,6 +42,8 @@ public class ProfileOfOtherUI : MonoBehaviour {
         FollowStatus = DataHelper.UserData.followed_player_id_firebase.Contains(data.id_firebase)
             ? EFollowStatus.Followed
             : EFollowStatus.Nope;
+
+        return this;
     }
 
     public enum EFollowStatus {

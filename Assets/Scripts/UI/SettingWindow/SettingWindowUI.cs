@@ -29,6 +29,7 @@ public class SettingWindowUI : MonoBehaviour {
     [Header("---INFO----")]
     [SerializeField] private TextField _RankTxt;
     [SerializeField] private TextField _EloTxt;
+    [SerializeField] private ButtonField _ShowListFollowedPlayerBtn;
 
     [Space]
     [Header("--SIGN OUT-")]
@@ -74,6 +75,8 @@ public class SettingWindowUI : MonoBehaviour {
             .WithColor(DataHelper.GetRankOfCurrentUser().Color);
         _EloTxt
             .WithContent("Elo: " + DataHelper.UserData.elo);
+        _ShowListFollowedPlayerBtn
+            .WithCallback(() => PopupFactory.ShowListFollowedPlayer());
             
         // Sign out
         _SignOutBtn.WithCallback(() => {

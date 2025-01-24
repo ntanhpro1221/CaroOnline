@@ -61,7 +61,8 @@ public class SelectableBoard : SceneSingleton<SelectableBoard> {
             if (LeftMouse != null &&
                 LeftMouse.isPressed)
                 _PressedCell = ScreenToCell(MousePos);
-            else if (Touchscreen.current != null &&
+            
+            if (Touchscreen.current != null &&
                 _Touches[0].Phase is TouchHelper.PHASE_MOVED or TouchHelper.PHASE_STATIONARY)
                 _PressedCell = ScreenToCell(_Touches[0].Position);
         }
@@ -76,7 +77,9 @@ public class SelectableBoard : SceneSingleton<SelectableBoard> {
                 HavePressedThisFrame(MousePos);
             if (LeftMouse.wasReleasedThisFrame)
                 HaveReleasedThisFrame(MousePos);
-        } else if (Touchscreen.current != null) {
+        } 
+
+        if (Touchscreen.current != null) {
             if (_Touches[0].Phase == TouchHelper.PHASE_BEGAN)
                 HavePressedThisFrame(_Touches[0].Position);
             if (_Touches[0].Phase == TouchHelper.PHASE_ENDED)

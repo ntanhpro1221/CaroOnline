@@ -1,4 +1,5 @@
 ﻿using DG.Tweening;
+using System.Collections;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
@@ -42,7 +43,9 @@ public class BattleScreenController : SceneSingleton<BattleScreenController> {
                 }
 
                 oldMouse = MousePos;
-            } else if (Touchscreen.current != null) {
+            }
+
+            if (Touchscreen.current != null) {
                 if (Touches.Count < 1 ||
                     !IsMovedPhase(Touches[0])) return;
 
@@ -75,7 +78,9 @@ public class BattleScreenController : SceneSingleton<BattleScreenController> {
 
                 // Khôi phục lại tọa độ thế giới của con trỏ sau khi zoom
                 _Cam.transform.Translate(storedMousePos - (Vector2)_Cam.ScreenToWorldPoint(MousePos));
-            } else if (Touchscreen.current != null) {
+            }
+            
+            if (Touchscreen.current != null) {
                 // Không có 2 ngón đang di chuyển thì thôi
                 if (Touches.Count < 2 ||
                     (!IsMovedPhase(Touches[0]) && !IsStationaryPhase(Touches[0])) ||

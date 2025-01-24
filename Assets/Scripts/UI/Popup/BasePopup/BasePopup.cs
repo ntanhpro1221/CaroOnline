@@ -1,4 +1,5 @@
 using DG.Tweening;
+using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -28,6 +29,7 @@ public class BasePopup : MonoBehaviour {
     [SerializeField] private LayoutElement _ButtonElement;
     [SerializeField] private RectTransform _ButtonRoot;
 
+    private Action _ExitCallback;
     private bool _Exitable = true;
 
     private void Start() {
@@ -56,7 +58,10 @@ public class BasePopup : MonoBehaviour {
         _WindowRoot
             .DOMove(new(Screen.width / 2, Screen.height * 1.5f), duration)
             .SetEase(Ease.InBack)
-            .OnComplete(() => Destroy(gameObject));
+            .OnComplete(() => {
+                _ExitCallback?.Invoke();
+                Destroy(gameObject);
+                });
     }
     
     public BasePopup WithTitle(string title) {
@@ -108,6 +113,11 @@ public class BasePopup : MonoBehaviour {
 
     public BasePopup WithoutButton() {
         foreach (RectTransform child in _ButtonRoot) Destroy(child.gameObject);
+        return this;
+    }
+
+    public BasePopup WithExitCallback(Action callback) {
+        _ExitCallback = callback;
         return this;
     }
 }
