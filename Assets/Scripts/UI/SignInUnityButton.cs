@@ -2,14 +2,19 @@
 using System.Threading.Tasks;
 using Unity.Services.Authentication;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
 [RequireComponent(typeof(ClickyButton))]
 public class SignInUnityButton : MonoBehaviour {
+    [SerializeField] private GameObject _LoadingBar;
+
     private IEnumerator OnClickSignInUnity() {
+        _LoadingBar.SetActive(true);
+
         bool isSignInCompleted = false;
         Task _ = AuthHelper.SignInWithGoogle(success => isSignInCompleted = true);
         while (!isSignInCompleted) yield return null;
+
+        _LoadingBar.SetActive(false);
 
         if (!AuthenticationService.Instance.IsSignedIn) {
             PopupFactory.ShowPopup_ManualBuild()

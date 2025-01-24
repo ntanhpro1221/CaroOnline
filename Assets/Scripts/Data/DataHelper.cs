@@ -83,7 +83,7 @@ public class DataHelper : Singleton<DataHelper> {
     }
 
     public static UnityEvent<UserData> OnUserDataChanged
-        => Instance.m_UserData.OnChanged;
+        => Instance?.m_UserData?.OnChanged;
 
     private static UserData GenDefaultUserDataForCurrentUser() => new() {
         id_firebase = AuthHelper.User.UserId,

@@ -109,7 +109,7 @@ public class RoomToolUI : SceneSingleton<RoomToolUI> {
     }
 
     private void OnDisable() {
-        LobbyHelper.Instance.RoomToolStatus.OnChanged.RemoveListener(OnRoomToolStatusChanged);
+        LobbyHelper.Instance?.RoomToolStatus?.OnChanged?.RemoveListener(OnRoomToolStatusChanged);
     }
 
     public enum Status {

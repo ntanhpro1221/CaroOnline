@@ -11,7 +11,7 @@ public class MusicToggler : MonoBehaviour {
     }
 
     private void OnDisable() {
-        DataHelper.OnUserDataChanged.RemoveListener(OnUserDataChanged);
+        DataHelper.OnUserDataChanged?.RemoveListener(OnUserDataChanged);
     }
 
     private void OnUserDataChanged(UserData userData) {
