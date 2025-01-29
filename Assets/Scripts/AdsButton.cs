@@ -1,5 +1,6 @@
 ﻿using DG.Tweening;
 using GoogleMobileAds.Api;
+using System.Threading.Tasks;
 using UnityEngine;
 
 public class AdsButton : MonoBehaviour {
@@ -18,9 +19,12 @@ public class AdsButton : MonoBehaviour {
 
         Debug.Log("Start load rewarded ad");
 
-        RewardedAd.Load(adUnitId, new(), (ad, error) => {
+        RewardedAd.Load(adUnitId, new(), async (ad, error) => {
             if (error != null || ad == null) {
                 Debug.LogError("Rewarded ad failed to load an ad " + "with error : " + error);
+
+                await Task.Delay(1000);
+                LoadAds();
                 return;
             }
 
@@ -44,12 +48,13 @@ public class AdsButton : MonoBehaviour {
         };
 
         rewardedAd.Show(reward => {
-            PopupFactory.ShowPopup_ManualBuild()
-            .WithTitle("Chúc mừng bạn đã nhận được không gì cả")
-            .WithButton(new() {
-                backgroundColor = Color.green,
-                content = "Tuyệt vời"
-            }, true);
+            MainThreadRunner.Run(() => PopupFactory.ShowPopup_ManualBuild()
+                .WithTitle("Chúc mừng bạn đã nhận được không gì cả")
+                .WithButton(new() {
+                    backgroundColor = Color.green,
+                    content = "Tuyệt vời"
+                }, true)
+            );
         });
     }
 

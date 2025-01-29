@@ -82,6 +82,7 @@ public class RoomToolUI : SceneSingleton<RoomToolUI> {
                 new() {
                     content = "Thôi",
                     backgroundColor = Color.red,
+                    foregroundColor = Color.yellow,
                 },
                 true)
             .WithButton(
